@@ -3,7 +3,6 @@ package ch.fmi;
 import java.awt.Polygon;
 import java.util.ArrayList;
 
-import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
@@ -38,8 +37,6 @@ public class MaskStraightener implements Command {
 	
 	@Override
 	public void run() {
-		//IJ.run(mask, "8-bit", ""); // to make sure the image is 8-bit grayscale
-		//IJ.run(mask, "Skeletonize (2D/3D)", "");
 		ByteProcessor maskIp = mask.getProcessor().convertToByteProcessor(true);
 		maskIp.invert(); // work around IJ1 processors working with white background
 		maskIp.skeletonize();
@@ -68,7 +65,6 @@ public class MaskStraightener implements Command {
 
 		// Create straightened image for kymograph etc.
 		imp.setRoi(pRoi);
-		//IJ.run(imp, "Straighten...", "line=20");
 		Straightener st = new Straightener();
 		ImageProcessor ip = st.straightenLine(imp, lineWidth);
 
