@@ -30,6 +30,9 @@ public class MaskStraightener implements Command {
 	@Parameter(label="Line Width")
 	private int lineWidth;
 
+	@Parameter(label="Step size")
+	private int stepSize;
+	
 	@Parameter(type = ItemIO.OUTPUT)
 	private ImagePlus result;
 	
@@ -55,11 +58,12 @@ public class MaskStraightener implements Command {
 
 		// Create polyline ROI by averaging pairs of points
 		Polygon poly = new Polygon();
-		for (int i = 0; i<sppoints[0].size()-1; i+=2) {
-			int x = (sppoints[0].get(i).x + sppoints[0].get(i+1).x)/2;
-			int y = (sppoints[0].get(i).y + sppoints[0].get(i+1).y)/2;
+		for (int i = 0; i<=sppoints[0].size()-stepSize; i+=stepSize) {
+			int x = sppoints[0].get(i).x;
+			int y = sppoints[0].get(i).y;
 			poly.addPoint(x,y);
 		}
+		poly.addPoint(sppoints[0].get(sppoints[0].size()-1).x, sppoints[0].get(sppoints[0].size()-1).y);
 		PolygonRoi pRoi = new PolygonRoi(poly, Roi.POLYLINE);
 
 		// Create straightened image for kymograph etc.
