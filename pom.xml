@@ -32,12 +32,24 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>AnalyzeSkeleton_</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>Descriptor_based_registration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>TrackMate_</artifactId>
 		</dependency>
 	</dependencies>
 </project>
