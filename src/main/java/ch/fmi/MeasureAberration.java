@@ -27,12 +27,12 @@ import process.Matching;
 
 @Plugin(type = Command.class, headless = true, menuPath = "FMI>Measure 3D Transformation Between Spots")
 public class MeasureAberration implements Command {
-	final static String TRANSLATION = "Translation";
-	final static String RIGID = "Rigid";
-	final static String SIMILARITY = "Similarity";
-	final static String AFFINE = "Affine";
 	
 	@Parameter(label = "Type of transformation", choices={TRANSLATION, RIGID, SIMILARITY, AFFINE})
+	final static private String TRANSLATION = "Translation";
+	final static private String RIGID = "Rigid";
+	final static private String SIMILARITY = "Similarity";
+	final static private String AFFINE = "Affine";
 	private String transformType;
 	
 	@Parameter(label = "Set 1 - X Coordinates")
@@ -115,6 +115,7 @@ public class MeasureAberration implements Command {
 			params.model = new SimilarityModel3D();
 			break;
 		case AFFINE:
+		default:
 			params.model = new AffineModel3D();
 			break;
 		}
