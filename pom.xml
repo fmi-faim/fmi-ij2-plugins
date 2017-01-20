@@ -45,6 +45,10 @@
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
+			<artifactId>Descriptor_based_registration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>sc.fiji</groupId>
 			<artifactId>TrackMate_</artifactId>
 		</dependency>
 	</dependencies>
