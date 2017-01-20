@@ -27,14 +27,15 @@ import process.Matching;
 
 @Plugin(type = Command.class, headless = true, menuPath = "FMI>Measure 3D Transformation Between Spots")
 public class MeasureAberration implements Command {
-	
-	@Parameter(label = "Type of transformation", choices={TRANSLATION, RIGID, SIMILARITY, AFFINE})
 	final static private String TRANSLATION = "Translation";
 	final static private String RIGID = "Rigid";
 	final static private String SIMILARITY = "Similarity";
 	final static private String AFFINE = "Affine";
+
+	@Parameter(label = "Type of transformation", choices = { TRANSLATION,
+			RIGID, SIMILARITY, AFFINE })
 	private String transformType;
-	
+
 	@Parameter(label = "Set 1 - X Coordinates")
 	private double[] x1;
 
@@ -52,7 +53,7 @@ public class MeasureAberration implements Command {
 
 	@Parameter(label = "Set 2 - X Coordinates")
 	private double[] z2;
-	
+
 	@Parameter(type = ItemIO.OUTPUT)
 	private int nRemaining;
 
@@ -85,24 +86,26 @@ public class MeasureAberration implements Command {
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] distances;
-	
+
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] correctedDistances;
-	
+
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] affine;
 
 	@Override
 	public void run() {
 		// Create Peaks list for first set
-		ArrayList<DifferenceOfGaussianPeak<FloatType>> spotList1 = populateSpotList (x1, y1, z1);
+		ArrayList<DifferenceOfGaussianPeak<FloatType>> spotList1 = populateSpotList(
+				x1, y1, z1);
 
-		ArrayList<DifferenceOfGaussianPeak<FloatType>> spotList2 = populateSpotList (x2, y2, z2);
+		ArrayList<DifferenceOfGaussianPeak<FloatType>> spotList2 = populateSpotList(
+				x2, y2, z2);
 
 		ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> listOfSpotLists = new ArrayList<>();
 		listOfSpotLists.add(spotList1);
 		listOfSpotLists.add(spotList2);
-		
+
 		DescriptorParameters params = new DescriptorParameters();
 		switch (transformType) {
 		case TRANSLATION:
@@ -119,21 +122,23 @@ public class MeasureAberration implements Command {
 			params.model = new AffineModel3D();
 			break;
 		}
-	    params.dimensionality = 3;
-	    params.localization = 1;
-	    params.numNeighbors = 3;
-	    params.significance = 3;
-	    params.similarOrientation = true;
-	    params.ransacThreshold = 5;
-	    params.channel1 = 0;
-	    params.channel2 = 0;
-	    params.redundancy = 1;
-	    params.fuse = 2; // no Overlay image
-		
-		Vector<ComparePair> pair = Matching.descriptorMatching(listOfSpotLists, 2, params, 1.0f);
-		
-		ArrayList<InvertibleBoundable> modelList = Matching.globalOptimization(pair, 2, params);
-		
+		params.dimensionality = 3;
+		params.localization = 1;
+		params.numNeighbors = 3;
+		params.significance = 3;
+		params.similarOrientation = true;
+		params.ransacThreshold = 5;
+		params.channel1 = 0;
+		params.channel2 = 0;
+		params.redundancy = 1;
+		params.fuse = 2; // no Overlay image
+
+		Vector<ComparePair> pair = Matching.descriptorMatching(listOfSpotLists,
+				2, params, 1.0f);
+
+		ArrayList<InvertibleBoundable> modelList = Matching.globalOptimization(
+				pair, 2, params);
+
 		ArrayList<Double> distanceList = new ArrayList<>();
 		ArrayList<Double> cDistanceList = new ArrayList<>();
 		ArrayList<Double> x1List = new ArrayList<>();
@@ -159,39 +164,41 @@ public class MeasureAberration implements Command {
 			y2List.add(p2loc[1]);
 			z2List.add(p2loc[2]);
 		}
-		
+
 		ix1 = Doubles.toArray(x1List);
 		iy1 = Doubles.toArray(y1List);
 		iz1 = Doubles.toArray(z1List);
 		ix2 = Doubles.toArray(x2List);
 		iy2 = Doubles.toArray(y2List);
 		iz2 = Doubles.toArray(z2List);
-		
+
 		AbstractAffineModel3D model = (AbstractAffineModel3D) modelList.get(1);
-		
+
 		affine = model.getMatrix(affine);
-		
+
 		// TODO apply model and return corrected points and distances
-		
+
 		cx1 = Doubles.toArray(cx1List);
 		cy1 = Doubles.toArray(cy1List);
 		cz1 = Doubles.toArray(cz1List);
-		
+
 		correctedDistances = Doubles.toArray(cDistanceList);
 	}
 
-	private ArrayList<DifferenceOfGaussianPeak<FloatType>> populateSpotList (double[] x, double[] y, double[] z) {
+	private ArrayList<DifferenceOfGaussianPeak<FloatType>> populateSpotList(
+			double[] x, double[] y, double[] z) {
 		ArrayList<DifferenceOfGaussianPeak<FloatType>> spotList = new ArrayList<>();
 		FloatType f = new FloatType();
-		for (int i = 0; i<x.length; i++) {
+		for (int i = 0; i < x.length; i++) {
 			int[] loc = new int[3];
 			loc[0] = (int) x[i];
 			loc[1] = (int) y[i];
 			loc[2] = (int) z[i];
-			DifferenceOfGaussianPeak<FloatType> spot = new DifferenceOfGaussianPeak<>(loc, f,  SpecialPoint.MAX);
-			spot.setSubPixelLocationOffset((float) (x[i]-loc[0]), 0);
-			spot.setSubPixelLocationOffset((float) (y[i]-loc[1]), 1);
-			spot.setSubPixelLocationOffset((float) (z[i]-loc[2]), 2);
+			DifferenceOfGaussianPeak<FloatType> spot = new DifferenceOfGaussianPeak<>(
+					loc, f, SpecialPoint.MAX);
+			spot.setSubPixelLocationOffset((float) (x[i] - loc[0]), 0);
+			spot.setSubPixelLocationOffset((float) (y[i] - loc[1]), 1);
+			spot.setSubPixelLocationOffset((float) (z[i] - loc[2]), 2);
 			spotList.add(spot);
 		}
 		return spotList;
