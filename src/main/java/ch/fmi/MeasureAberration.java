@@ -11,6 +11,7 @@ import mpicbg.imglib.type.numeric.real.FloatType;
 import mpicbg.models.AbstractAffineModel3D;
 import mpicbg.models.AffineModel3D;
 import mpicbg.models.InvertibleBoundable;
+import mpicbg.models.Point;
 import mpicbg.models.PointMatch;
 import mpicbg.models.RigidModel3D;
 import mpicbg.models.SimilarityModel3D;
@@ -18,6 +19,7 @@ import mpicbg.models.TranslationModel3D;
 
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -31,6 +33,9 @@ public class MeasureAberration implements Command {
 	final static private String RIGID = "Rigid";
 	final static private String SIMILARITY = "Similarity";
 	final static private String AFFINE = "Affine";
+
+	@Parameter
+	private LogService log;
 
 	@Parameter(label = "Type of transformation", choices = { TRANSLATION,
 			RIGID, SIMILARITY, AFFINE })
@@ -134,10 +139,7 @@ public class MeasureAberration implements Command {
 		params.fuse = 2; // no Overlay image
 
 		Vector<ComparePair> pair = Matching.descriptorMatching(listOfSpotLists,
-				2, params, 1.0f);
-
-		ArrayList<InvertibleBoundable> modelList = Matching.globalOptimization(
-				pair, 2, params);
+				2, params, 1.0f); // what about the original coordinates? changed?
 
 		ArrayList<Double> distanceList = new ArrayList<>();
 		ArrayList<Double> cDistanceList = new ArrayList<>();
@@ -154,9 +156,12 @@ public class MeasureAberration implements Command {
 		ArrayList<PointMatch> matches = pair.get(0).inliers;
 		nRemaining = matches.size();
 		for (PointMatch match : matches) {
-			double[] p1loc = match.getP1().getW();
-			double[] p2loc = match.getP2().getW();
-			distanceList.add(match.getDistance());
+			// get local, immutable coordinates
+			Point p1 = match.getP1();
+			Point p2 = match.getP2();
+			double[] p1loc = p1.getL();
+			double[] p2loc = p2.getL();
+			distanceList.add(Point.localDistance(p1, p2));
 			x1List.add(p1loc[0]);
 			y1List.add(p1loc[1]);
 			z1List.add(p1loc[2]);
@@ -172,11 +177,27 @@ public class MeasureAberration implements Command {
 		iy2 = Doubles.toArray(y2List);
 		iz2 = Doubles.toArray(z2List);
 
-		AbstractAffineModel3D model = (AbstractAffineModel3D) modelList.get(1);
+		distances = Doubles.toArray(distanceList);
+
+		ArrayList<InvertibleBoundable> modelList = Matching.globalOptimization(
+				pair, 2, params); // this will modify the points inside pair!
+
+		AbstractAffineModel3D<?> model = (AbstractAffineModel3D<?>) modelList
+				.get(1);
 
 		affine = model.getMatrix(affine);
 
-		// TODO apply model and return corrected points and distances
+		// TODO use static PointMatch.apply(Collection, model) to get new points
+		// and distances?
+
+		for (PointMatch match : matches) {
+			double[] p1loc = match.getP1().getW(); // this should be the
+													// transformed coordinates?
+			cDistanceList.add(match.getDistance());
+			cx1List.add(p1loc[0]);
+			cy1List.add(p1loc[1]);
+			cz1List.add(p1loc[2]);
+		}
 
 		cx1 = Doubles.toArray(cx1List);
 		cy1 = Doubles.toArray(cy1List);

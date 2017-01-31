@@ -27,7 +27,7 @@ import org.scijava.plugin.Plugin;
 public class TrackMateSpotDetector implements Command {
 	@Parameter
 	private LogService log;
-	
+
 	@Parameter(label = "Input image")
 	private ImagePlus imp;
 
@@ -36,6 +36,9 @@ public class TrackMateSpotDetector implements Command {
 
 	@Parameter(label = "Spot quality threshold")
 	private double spotThreshold = DetectorKeys.DEFAULT_THRESHOLD;
+
+	@Parameter(label = "Remove calibration?")
+	private boolean removeCalibration;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private int nSpotsFound;
@@ -54,16 +57,25 @@ public class TrackMateSpotDetector implements Command {
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] quality;
+	
+	// TODO optionally output intensity and radius (x,y,z?) for each spot
 
 	@Override
 	public void run() {
 		// Create TrackMate instance with settings
 		Model model = new Model();
+
+		// optionally remove calibration from imp
+		if (removeCalibration) {
+			imp.setCalibration(null);
+		}
+
 		Settings settings = new Settings();
 
 		settings.setFrom(imp);
 
-		settings.detectorFactory = new LogDetectorFactory<>(); // TODO make detector choice optional
+		// TODO make detector choice optional
+		settings.detectorFactory = new LogDetectorFactory<>();
 
 		settings.detectorSettings = settings.detectorFactory
 				.getDefaultSettings();
@@ -81,21 +93,20 @@ public class TrackMateSpotDetector implements Command {
 				TrackerKeys.DEFAULT_GAP_CLOSING_MAX_DISTANCE);
 		settings.trackerSettings.put(TrackerKeys.KEY_GAP_CLOSING_MAX_FRAME_GAP,
 				TrackerKeys.DEFAULT_GAP_CLOSING_MAX_FRAME_GAP);
-		
-		//settings.detectorFactory.
-		
+
+		// settings.detectorFactory.
+
 		TrackMate trackmate = new TrackMate(model, settings);
 
 		// Process (spot detection and tracking)
 		if (!trackmate.checkInput()) {
 			log.error("Configuration error: " + trackmate.getErrorMessage());
-			return; // TODO log errors
+			return;
 		}
 		if (!trackmate.process()) {
 			log.error("Processing error: " + trackmate.getErrorMessage());
-			return; // TODO log errors
+			return;
 		}
-		log.error("All good, continuing..");
 
 		// Prepare lists to collect results
 		ArrayList<Integer> spotIDlist = new ArrayList<>();
@@ -103,7 +114,7 @@ public class TrackMateSpotDetector implements Command {
 		ArrayList<Double> yList = new ArrayList<>();
 		ArrayList<Double> zList = new ArrayList<>();
 		ArrayList<Double> qList = new ArrayList<>();
-		
+
 		// Get spot collection (all spots)
 		SpotCollection spotCollection = model.getSpots();
 		for (Spot spot : spotCollection.iterable(false)) {
