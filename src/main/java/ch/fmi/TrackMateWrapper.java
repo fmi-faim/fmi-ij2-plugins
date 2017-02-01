@@ -35,6 +35,9 @@ public class TrackMateWrapper implements Command {
 	@Parameter(label = "Input image")
 	private ImagePlus imp;
 
+	@Parameter(label = "Frame interval")
+	private double frameInterval;
+
 	@Parameter(label = "ROI mask", required = false)
 	private ImagePlus mask;
 
@@ -107,7 +110,7 @@ public class TrackMateWrapper implements Command {
 		Settings settings = new Settings();
 
 		settings.setFrom(imp);
-
+		settings.dt = frameInterval;
 		settings.detectorFactory = new LogDetectorFactory<>();
 
 		settings.detectorSettings = settings.detectorFactory
@@ -169,7 +172,9 @@ public class TrackMateWrapper implements Command {
 						.add(spot
 								.getFeature(SpotIntensityAnalyzerFactory.TOTAL_INTENSITY));
 				radiusList.add(spot.getFeature(Spot.RADIUS));
-				diameterList.add(spot.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER));
+				diameterList
+						.add(spot
+								.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER));
 			}
 		}
 
