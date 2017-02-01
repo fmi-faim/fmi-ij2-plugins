@@ -6,9 +6,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>sc.fiji</groupId>
-		<artifactId>pom-fiji</artifactId>
-		<version>26.1.1</version>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>13.0.0</version>
 		<relativePath />
 	</parent>
 
@@ -18,9 +18,70 @@
 
 	<name>ImageJ2 plugins for use in ImageJ and KNIME</name>
 	<description>A collection of plugins developed at the FMI Basel.</description>
+	<url>https://github.com/fmi-faim/fmi-ij2-plugins</url>
+	<inceptionYear>2016</inceptionYear>
+	<organization>
+		<name>Friedrich Miescher Institute for Biomedical Research (FMI), Basel</name>
+		<url>http://www.fmi.ch/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GNU Lesser General Public License v3+</name>
+			<url>http://www.gnu.org/licenses/lgpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>imagejan</id>
+			<name>Jan Eglinger</name>
+			<url>https://imagej.net/User:Eglinger</url>
+			<roles>
+				<!-- See https://imagej.net/Team -->
+				<role>founder</role>
+				<role>lead</role>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>support</role>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+	
+	<contributors>
+		<contributor>
+			<name>None</name>
+		</contributor>
+	</contributors>
+
+	<mailingLists>
+		<mailingList>
+			<name>ImageJ Forum</name>
+			<archive>http://forum.imagej.net/</archive>
+		</mailingList>
+	</mailingLists>
+	
+	<scm>
+		<connection>scm:git:git://github.com/fmi-faim/fmi-ij2-plugins</connection>
+		<developerConnection>scm:git:git@github.com:fmi-faim/fmi-ij2-plugins</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/fmi-faim/fmi-ij2-plugins</url>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/fmi-faim/fmi-ij2-plugins/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>N/A</system>
+	</ciManagement>
 
 	<properties>
-		<main-class>ch.fmi.MaskStraightener</main-class>
+		<package-name>ch.fmi</package-name>
+		<license.licenseName>lgpl_v3</license.licenseName>
+		<license.copyrightOwners>FMI Basel</license.copyrightOwners>
 	</properties>
 
 	<repositories>
@@ -46,6 +107,16 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>Descriptor_based_registration</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>ome-xml</artifactId>
+					<groupId>ome</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>formats-common</artifactId>
+					<groupId>ome</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
