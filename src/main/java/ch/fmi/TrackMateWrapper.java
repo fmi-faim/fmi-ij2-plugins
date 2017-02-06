@@ -2,6 +2,7 @@ package ch.fmi;
 
 import com.google.common.primitives.Doubles;
 
+import fiji.plugin.trackmate.FeatureModel;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
@@ -11,6 +12,7 @@ import fiji.plugin.trackmate.detection.DetectorKeys;
 import fiji.plugin.trackmate.detection.LogDetectorFactory;
 import fiji.plugin.trackmate.features.spot.SpotIntensityAnalyzerFactory;
 import fiji.plugin.trackmate.features.spot.SpotRadiusEstimatorFactory;
+import fiji.plugin.trackmate.features.track.TrackDurationAnalyzer;
 import fiji.plugin.trackmate.tracking.LAPUtils;
 import fiji.plugin.trackmate.tracking.TrackerKeys;
 import fiji.plugin.trackmate.tracking.sparselap.SparseLAPTrackerFactory;
@@ -34,6 +36,8 @@ public class TrackMateWrapper implements Command {
 
 	@Parameter(label = "Input image")
 	private ImagePlus imp;
+	// TODO replace by ImgPlus to keep calibration
+	// see https://github.com/knime-ip/knip-imagej2/issues/13
 
 	@Parameter(label = "Frame interval")
 	private double frameInterval;
@@ -131,6 +135,7 @@ public class TrackMateWrapper implements Command {
 				frameGap);
 		settings.addSpotAnalyzerFactory(new SpotIntensityAnalyzerFactory<>());
 		settings.addSpotAnalyzerFactory(new SpotRadiusEstimatorFactory<>());
+		settings.addTrackAnalyzer(new TrackDurationAnalyzer());
 
 		TrackMate trackmate = new TrackMate(model, settings);
 
@@ -148,6 +153,7 @@ public class TrackMateWrapper implements Command {
 		ArrayList<Double> spotIDlist = new ArrayList<>();
 		ArrayList<Double> qualityList = new ArrayList<>();
 		ArrayList<Double> trackIDlist = new ArrayList<>();
+		ArrayList<Double> durationList = new ArrayList<>();
 		ArrayList<Double> frameList = new ArrayList<>();
 		ArrayList<Double> tList = new ArrayList<>();
 		ArrayList<Double> xList = new ArrayList<>();
@@ -158,11 +164,14 @@ public class TrackMateWrapper implements Command {
 		ArrayList<Double> diameterList = new ArrayList<>();
 
 		TrackModel trackModel = model.getTrackModel();
+		FeatureModel featureModel = model.getFeatureModel();
 		for (Integer tID : trackModel.trackIDs(false)) {
 			for (Spot spot : trackModel.trackSpots(tID)) {
 				spotIDlist.add((double) spot.ID());
 				qualityList.add(spot.getFeature(Spot.QUALITY));
 				trackIDlist.add((double) tID);
+				durationList.add(featureModel.getTrackFeature(tID,
+						TrackDurationAnalyzer.TRACK_DURATION));
 				frameList.add(spot.getFeature(Spot.FRAME));
 				tList.add(spot.getFeature(Spot.POSITION_T));
 				xList.add(spot.getDoublePosition(0));
