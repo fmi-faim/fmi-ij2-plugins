@@ -4,7 +4,7 @@
 
 # Installation in KNIME
 
-Install [`fmi-ij2-plugins.jar`](https://github.com/fmi-faim/fmi-ij2-plugins/releases/download/v0.1.2/fmi-ij2-plugins-0.1.2.jar) via *File > Preferences* into *KNIME > Image Processing Plugin > ImageJ2 Plugin Installation*.
+Install [`fmi-ij2-plugins.jar`](https://github.com/fmi-faim/fmi-ij2-plugins/releases/download/v0.1.3/fmi-ij2-plugins-0.1.3.jar) via *File > Preferences* into *KNIME > Image Processing Plugin > ImageJ2 Plugin Installation*.
 
 The following additional files (dependencies) are required:
 
