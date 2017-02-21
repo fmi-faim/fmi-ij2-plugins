@@ -136,6 +136,8 @@ public class TrackMateWrapper implements Command {
 		settings.addSpotAnalyzerFactory(new SpotIntensityAnalyzerFactory<>());
 		settings.addSpotAnalyzerFactory(new SpotRadiusEstimatorFactory<>());
 		settings.addTrackAnalyzer(new TrackDurationAnalyzer());
+		
+		// TODO detect spots first, filter by mask.contains, then do tracking
 
 		TrackMate trackmate = new TrackMate(model, settings);
 
