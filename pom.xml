@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>13.2.1</version>
+		<version>14.0.0</version>
 		<relativePath />
 	</parent>
 
@@ -91,6 +91,11 @@
 	</repositories>
 
 	<dependencies>
+		<dependency>
+			<groupId>ch.fmi</groupId>
+			<artifactId>fmi-trackmate-addons</artifactId>
+			<version>0.1.0</version>
+		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>

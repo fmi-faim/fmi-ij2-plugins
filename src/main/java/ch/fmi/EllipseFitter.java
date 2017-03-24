@@ -30,6 +30,15 @@ public class EllipseFitter<T extends IntegerType<T>> implements Command {
 	@Parameter(type = ItemIO.OUTPUT)
 	private double centerY;
 
+	@Parameter(type = ItemIO.OUTPUT)
+	private double semiMajorLength;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double semiMinorLength;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double angle;
+
 	@Override
 	public void run() {
 		// Get points from binary mask (each white pixel will get added)
@@ -53,8 +62,11 @@ public class EllipseFitter<T extends IntegerType<T>> implements Command {
 		double[] ellipseParams = FitEllipse.direct(points);
 		double[] ellipseDims = FitEllipse.varToDimensions(ellipseParams);
 
-		// Get center coordinates
+		// Get ellipse coordinates
 		centerX = ellipseDims[0];
 		centerY = ellipseDims[1];
+		semiMajorLength = ellipseDims[2];
+		semiMinorLength = ellipseDims[3];
+		angle = ellipseDims[4];
 	}
 }

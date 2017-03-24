@@ -10,6 +10,7 @@ import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.TrackModel;
 import fiji.plugin.trackmate.detection.DetectorKeys;
 import fiji.plugin.trackmate.detection.LogDetectorFactory;
+import fiji.plugin.trackmate.features.FeatureFilter;
 import fiji.plugin.trackmate.features.spot.SpotIntensityAnalyzerFactory;
 import fiji.plugin.trackmate.features.spot.SpotRadiusEstimatorFactory;
 import fiji.plugin.trackmate.features.track.TrackDurationAnalyzer;
@@ -59,6 +60,9 @@ public class TrackMateWrapper implements Command {
 
 	@Parameter(label = "Gap closing max frame gap")
 	private int frameGap = TrackerKeys.DEFAULT_GAP_CLOSING_MAX_FRAME_GAP;
+
+	@Parameter(label = "Filter max quality spot per frame")
+	private boolean filterMaxQuality = true;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private int nSpotsFound;
@@ -125,6 +129,12 @@ public class TrackMateWrapper implements Command {
 		settings.detectorSettings
 				.put(DetectorKeys.KEY_THRESHOLD, spotThreshold);
 
+		if (filterMaxQuality) {
+			settings.addSpotFilter(new FeatureFilter(
+					MaxQualitySpotAnalyzerFactory.HAS_MAX_QUALITY_IN_FRAME,
+					0.5, true));
+		}
+
 		settings.trackerFactory = new SparseLAPTrackerFactory();
 		settings.trackerSettings = LAPUtils.getDefaultLAPSettingsMap();
 		settings.trackerSettings.put(TrackerKeys.KEY_LINKING_MAX_DISTANCE,
@@ -135,8 +145,9 @@ public class TrackMateWrapper implements Command {
 				frameGap);
 		settings.addSpotAnalyzerFactory(new SpotIntensityAnalyzerFactory<>());
 		settings.addSpotAnalyzerFactory(new SpotRadiusEstimatorFactory<>());
+		settings.addSpotAnalyzerFactory(new MaxQualitySpotAnalyzerFactory<>());
 		settings.addTrackAnalyzer(new TrackDurationAnalyzer());
-		
+
 		// TODO detect spots first, filter by mask.contains, then do tracking
 
 		TrackMate trackmate = new TrackMate(model, settings);
