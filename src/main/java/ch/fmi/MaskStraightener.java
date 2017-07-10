@@ -48,7 +48,7 @@ public class MaskStraightener implements Command {
 		skel.setup("", new ImagePlus("Skeleton", maskIp));
 		 
 		// Perform analysis in silent mode
-		skel.run(AnalyzeSkeleton_.NONE, false, true, null, true, false);
+		skel.run(AnalyzeSkeleton_.SHORTEST_BRANCH, false, true, null, true, false);
 
 		// Read the results
 		ArrayList<Point>[] sppoints = skel.getShortestPathPoints();
