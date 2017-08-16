@@ -107,7 +107,7 @@ public class TrackMateWrapper implements Command {
 	public void run() {
 		// Set mask ROI on input image
 		if (mask != null) {
-			mask.getProcessor().setThreshold(1.0, 255.0,
+			mask.getProcessor().setThreshold(1.0, Double.POSITIVE_INFINITY,
 					ImageProcessor.NO_LUT_UPDATE);
 			Roi roi = ThresholdToSelection.run(mask);
 			imp.setRoi(roi);
