@@ -61,8 +61,8 @@ public class TrackMateWrapper implements Command {
 	@Parameter(label = "Gap closing max frame gap")
 	private int frameGap = TrackerKeys.DEFAULT_GAP_CLOSING_MAX_FRAME_GAP;
 
-	@Parameter(label = "Filter max quality spot per frame")
-	private boolean filterMaxQuality = true;
+	@Parameter(label = "Filter max quality spot per frame", required = false)
+	private boolean filterMaxQuality = false;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private int nSpotsFound;
