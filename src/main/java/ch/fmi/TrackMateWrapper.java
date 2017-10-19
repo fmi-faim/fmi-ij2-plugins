@@ -11,6 +11,7 @@ import fiji.plugin.trackmate.TrackModel;
 import fiji.plugin.trackmate.detection.DetectorKeys;
 import fiji.plugin.trackmate.detection.LogDetectorFactory;
 import fiji.plugin.trackmate.features.FeatureFilter;
+import fiji.plugin.trackmate.features.spot.SpotContrastAnalyzerFactory;
 import fiji.plugin.trackmate.features.spot.SpotIntensityAnalyzerFactory;
 import fiji.plugin.trackmate.features.spot.SpotRadiusEstimatorFactory;
 import fiji.plugin.trackmate.features.track.TrackDurationAnalyzer;
@@ -103,6 +104,9 @@ public class TrackMateWrapper implements Command {
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] estDiameter;
 
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] contrast;
+
 	@Override
 	public void run() {
 		// Set mask ROI on input image
@@ -145,6 +149,7 @@ public class TrackMateWrapper implements Command {
 				frameGap);
 		settings.addSpotAnalyzerFactory(new SpotIntensityAnalyzerFactory<>());
 		settings.addSpotAnalyzerFactory(new SpotRadiusEstimatorFactory<>());
+		settings.addSpotAnalyzerFactory(new SpotContrastAnalyzerFactory<>());
 		settings.addSpotAnalyzerFactory(new MaxQualitySpotAnalyzerFactory<>());
 		settings.addTrackAnalyzer(new TrackDurationAnalyzer());
 
@@ -155,11 +160,11 @@ public class TrackMateWrapper implements Command {
 		// Process (spot detection and tracking)
 		if (!trackmate.checkInput()) {
 			log.error("Configuration error: " + trackmate.getErrorMessage());
-			return; // TODO log errors
+			return;
 		}
 		if (!trackmate.process()) {
 			log.error("Processing error: " + trackmate.getErrorMessage());
-			return; // TODO log errors
+			return;
 		}
 
 		// Prepare lists to collect results
@@ -175,6 +180,7 @@ public class TrackMateWrapper implements Command {
 		ArrayList<Double> intensityList = new ArrayList<>();
 		ArrayList<Double> radiusList = new ArrayList<>();
 		ArrayList<Double> diameterList = new ArrayList<>();
+		ArrayList<Double> contrastList = new ArrayList<>();
 
 		TrackModel trackModel = model.getTrackModel();
 		FeatureModel featureModel = model.getFeatureModel();
@@ -197,6 +203,8 @@ public class TrackMateWrapper implements Command {
 				diameterList
 						.add(spot
 								.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER));
+				contrastList.add(spot
+						.getFeature(SpotContrastAnalyzerFactory.KEY));
 			}
 		}
 
@@ -221,6 +229,7 @@ public class TrackMateWrapper implements Command {
 		intensity = Doubles.toArray(intensityList);
 		radius = Doubles.toArray(radiusList);
 		estDiameter = Doubles.toArray(diameterList);
+		contrast = Doubles.toArray(contrastList);
 
 		// Return summary values
 		nSpotsFound = model.getSpots().getNSpots(false);
