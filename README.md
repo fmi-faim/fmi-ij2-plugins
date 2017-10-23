@@ -1,12 +1,19 @@
 # fmi-ij2-plugins
 
+[![Build Status](https://travis-ci.org/fmi-faim/fmi-ij2-plugins.svg?branch=master)](https://travis-ci.org/fmi-faim/fmi-ij2-plugins)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/6223c2d420574794be62f9f45a871903)](https://www.codacy.com/app/imagejan/fmi-ij2-plugins?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fmi-faim/fmi-ij2-plugins&amp;utm_campaign=Badge_Grade)
 
-# Installation in KNIME
+## Installation in KNIME
 
-Install [`fmi-ij2-plugins.jar`](https://github.com/fmi-faim/fmi-ij2-plugins/releases/download/v0.1.4/fmi-ij2-plugins-0.1.4.jar) via *File > Preferences* into *KNIME > Image Processing Plugin > ImageJ2 Plugin Installation*.
+To use these plugins in KNIME, please activate the update site `https://community.knime.org/download/ch.fmi.knime.plugins.update/` as well as the [KNIME Image Processing Nightly Builds](https://www.knime.com/wiki/knime-image-processing-nightly-build).
 
-The following additional files (dependencies) are required:
+## Manual installation in KNIME
+
+If you want to install this plugin manually via the KNIME ImageJ2 integration, you'll have to install the `fmi-ij2-plugins` jar file as well as all the dependencies listed below.
+
+1. Install [`fmi-ij2-plugins.jar`](https://github.com/fmi-faim/fmi-ij2-plugins/releases/download/v0.1.4/fmi-ij2-plugins-0.1.4.jar) via *File > Preferences* into *KNIME > Image Processing Plugin > ImageJ2 Plugin Installation*.
+
+2. The following additional files (dependencies) are required:
 
 | Project | Download `jar` from maven.imagej.net |
 | --- | --- |
