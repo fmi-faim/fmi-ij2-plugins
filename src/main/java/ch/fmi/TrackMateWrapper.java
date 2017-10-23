@@ -96,7 +96,10 @@ public class TrackMateWrapper implements Command {
 	private double[] z;
 
 	@Parameter(type = ItemIO.OUTPUT)
-	private double[] intensity;
+	private double[] totalIntensity;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] meanIntensity;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] radius;
@@ -177,7 +180,8 @@ public class TrackMateWrapper implements Command {
 		ArrayList<Double> xList = new ArrayList<>();
 		ArrayList<Double> yList = new ArrayList<>();
 		ArrayList<Double> zList = new ArrayList<>();
-		ArrayList<Double> intensityList = new ArrayList<>();
+		ArrayList<Double> totalIntensityList = new ArrayList<>();
+		ArrayList<Double> meanIntensityList = new ArrayList<>();
 		ArrayList<Double> radiusList = new ArrayList<>();
 		ArrayList<Double> diameterList = new ArrayList<>();
 		ArrayList<Double> contrastList = new ArrayList<>();
@@ -196,9 +200,12 @@ public class TrackMateWrapper implements Command {
 				xList.add(spot.getDoublePosition(0));
 				yList.add(spot.getDoublePosition(1));
 				zList.add(spot.getDoublePosition(2));
-				intensityList
+				totalIntensityList
 						.add(spot
 								.getFeature(SpotIntensityAnalyzerFactory.TOTAL_INTENSITY));
+				meanIntensityList
+						.add(spot
+								.getFeature(SpotIntensityAnalyzerFactory.MEAN_INTENSITY));
 				radiusList.add(spot.getFeature(Spot.RADIUS));
 				diameterList
 						.add(spot
@@ -226,7 +233,8 @@ public class TrackMateWrapper implements Command {
 		x = Doubles.toArray(xList);
 		y = Doubles.toArray(yList);
 		z = Doubles.toArray(zList);
-		intensity = Doubles.toArray(intensityList);
+		totalIntensity = Doubles.toArray(totalIntensityList);
+		meanIntensity = Doubles.toArray(meanIntensityList);
 		radius = Doubles.toArray(radiusList);
 		estDiameter = Doubles.toArray(diameterList);
 		contrast = Doubles.toArray(contrastList);
