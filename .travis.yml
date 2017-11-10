@@ -6,5 +6,6 @@ branches:
   - "/.*-[0-9]+\\..*/"
 install: true
 script: ".travis/build.sh"
-env:
-  global:
+cache:
+  directories:
+  - "~/.m2/repository"
