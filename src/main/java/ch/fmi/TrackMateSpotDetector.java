@@ -50,6 +50,9 @@ public class TrackMateSpotDetector implements Command {
 	@Parameter(label = "Remove calibration?")
 	private boolean removeCalibration = false;
 
+	@Parameter(label = "Use mask?")
+	private boolean useMask = true;
+
 	@Parameter(type = ItemIO.OUTPUT)
 	private int nSpotsFound;
 
@@ -89,7 +92,7 @@ public class TrackMateSpotDetector implements Command {
 	@Override
 	public void run() {
 		// Set mask ROI on input image
-		if (mask != null) {
+		if (mask != null && useMask) {
 			mask.getProcessor().setThreshold(1.0, Double.POSITIVE_INFINITY,
 					ImageProcessor.NO_LUT_UPDATE);
 			Roi roi = ThresholdToSelection.run(mask);
