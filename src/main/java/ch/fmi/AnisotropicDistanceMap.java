@@ -9,6 +9,7 @@ import net.imagej.ops.Ops.Image.DistanceTransform;
 import net.imagej.ops.convert.ConvertImages;
 import net.imglib2.img.Img;
 import net.imglib2.type.logic.BitType;
+import net.imglib2.view.Views;
 
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
@@ -53,8 +54,8 @@ public class AnisotropicDistanceMap extends ContextCommand {
 		Img<BitType> bitImg = (Img<BitType>) ops.run(ConvertImages.Bit.class,
 				input);
 
-		Img<?> outImg = (Img<?>) ops.run(DistanceTransform.class, bitImg, cal);
+		Img<?> outImg = (Img<?>) ops.run(DistanceTransform.class, Views.zeroMin(bitImg), cal);
 
-		output = new ImgPlus<>(outImg, input, true);
+		output = new ImgPlus<>(outImg, input, false);
 	}
 }
