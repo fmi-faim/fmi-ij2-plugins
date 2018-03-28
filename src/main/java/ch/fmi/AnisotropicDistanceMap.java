@@ -5,10 +5,15 @@ import java.util.stream.IntStream;
 import net.imagej.Dataset;
 import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
+import net.imagej.ops.Ops;
 import net.imagej.ops.Ops.Image.DistanceTransform;
 import net.imagej.ops.convert.ConvertImages;
+import net.imglib2.algorithm.morphology.distance.DistanceTransform.DISTANCE_TYPE;
+import net.imglib2.converter.read.ConvertedRandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.logic.BitType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
 import org.scijava.ItemIO;
@@ -26,16 +31,23 @@ import org.scijava.plugin.Plugin;
  */
 @Plugin(type = Command.class, headless = true, menuPath = "FMI>Distance Map (with Calibration)")
 public class AnisotropicDistanceMap extends ContextCommand {
+	
+	private static final String OPS = "ImageJ-Ops";
+	private static final String IMGLIB = "Imglib2";
 
 	@Parameter
 	private OpService ops;
 
 	@Parameter(label = "Input image")
 	private Dataset input;
+	
+	@Parameter(label = "Implemention to use", choices = {OPS, IMGLIB}, required = false)
+	private String implementation = OPS;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private ImgPlus<?> output;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
 		/*
@@ -48,13 +60,29 @@ public class AnisotropicDistanceMap extends ContextCommand {
 		double[] cal = IntStream.range(0, input.numDimensions())
 				.mapToDouble(d -> input.averageScale(d)).toArray();
 
-		// Convert to BitType image
-		// (required for working with 8-bit "binary" images in ImageJ 1.x)
-		@SuppressWarnings("unchecked")
-		Img<BitType> bitImg = (Img<BitType>) ops.run(ConvertImages.Bit.class,
-				input);
+		Img<?> outImg = null;
+		switch (implementation) {
+		case OPS:
+		default:
+			// Convert to BitType image
+			// (required for working with 8-bit "binary" images in ImageJ 1.x)
+			Img<BitType> bitImg = (Img<BitType>) ops.run(
+					ConvertImages.Bit.class, input);
 
-		Img<?> outImg = (Img<?>) ops.run(DistanceTransform.class, Views.zeroMin(bitImg), cal);
+			outImg = (Img<?>) ops.run(DistanceTransform.class,
+					Views.zeroMin(bitImg), cal);
+			break;
+		case IMGLIB:
+			FloatType type = new FloatType();
+			ConvertedRandomAccessibleInterval<RealType<?>, FloatType> conv = new ConvertedRandomAccessibleInterval<>(
+					input, (s, t) -> t.set(s.getRealDouble() > 0.0 ? 100000000 : 0.0f),
+					type);
+			outImg = (Img<?>) ops.run(Ops.Create.Img.class, conv);
+			net.imglib2.algorithm.morphology.distance.DistanceTransform
+					.transform(conv, (Img<FloatType>) outImg,
+							DISTANCE_TYPE.EUCLIDIAN, cal);
+			break;
+		}
 
 		output = new ImgPlus<>(outImg, input, false);
 	}
