@@ -3,9 +3,8 @@ package ch.fmi;
 import net.imagej.ops.OpService;
 import net.imagej.ops.Ops.Geometric.Contour;
 import net.imglib2.img.Img;
-import net.imglib2.roi.geometric.Polygon;
+import net.imglib2.roi.geom.real.Polygon2D;
 import net.imglib2.type.logic.BitType;
-
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
@@ -29,18 +28,12 @@ public class ContourPolygon extends ContextCommand {
 
 	@Override
 	public void run() {
-		Polygon polygon = (Polygon) opService.run(Contour.class, input, true);
-		/*
-		ArrayList<Double> xList = new ArrayList<>();
-		ArrayList<Double> yList = new ArrayList<>();
-		polygon.getVertices().forEach(vertex -> {
-			xList.add(vertex.getDoublePosition(0));
-			yList.add(vertex.getDoublePosition(1));
-		});
-		*/
-		xpoints = polygon.getVertices().stream()
-				.mapToDouble(vertex -> vertex.getDoublePosition(0)).toArray();
-		ypoints = polygon.getVertices().stream()
-				.mapToDouble(vertex -> vertex.getDoublePosition(1)).toArray();
+		Polygon2D polygon = (Polygon2D) opService.run(Contour.class, input, true);
+		xpoints = new double[polygon.numVertices()];
+		ypoints = new double[polygon.numVertices()];		
+		for (int i = 0; i < polygon.numVertices(); i++) {
+			xpoints[i] = polygon.vertex(i).getDoublePosition(0);
+			ypoints[i] = polygon.vertex(i).getDoublePosition(1);
+		}
 	}
 }
