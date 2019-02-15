@@ -37,7 +37,7 @@ public class ApplyAffineTransform<T extends NumericType<T>> implements Command {
 		AffineRandomAccessible<T, AffineGet> view = RealViews.affine(
 				interpolated, transform);
 
-		output = img.factory().create(img, img.firstElement());
+		output = img.factory().create(img);
 		Cursor<T> cursorIn = Views.interval(view, img).cursor();
 		Cursor<T> cursorOut = output.cursor();
 

@@ -13,13 +13,13 @@ import org.scijava.plugin.Plugin;
 
 @Plugin(type = Command.class, headless = true, menuPath = "FMI>Apply 3D Affine Transform to Points")
 public class ApplyAffineTransformPoints implements Command {
-	@Parameter
+	@Parameter(label = "x Coordinates")
 	private double[] xIn;
 
-	@Parameter
+	@Parameter(label = "y Coordinates")
 	private double[] yIn;
 
-	@Parameter
+	@Parameter(label = "z Coordinates")
 	private double[] zIn;
 
 	@Parameter(label = "Affine transformation matrix")

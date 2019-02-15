@@ -53,10 +53,10 @@ public class MeasureAberration implements Command {
 	@Parameter(label = "Set 2 - X Coordinates")
 	private double[] x2;
 
-	@Parameter(label = "Set 2 - X Coordinates")
+	@Parameter(label = "Set 2 - Y Coordinates")
 	private double[] y2;
 
-	@Parameter(label = "Set 2 - X Coordinates")
+	@Parameter(label = "Set 2 - Z Coordinates")
 	private double[] z2;
 
 	@Parameter(type = ItemIO.OUTPUT)
