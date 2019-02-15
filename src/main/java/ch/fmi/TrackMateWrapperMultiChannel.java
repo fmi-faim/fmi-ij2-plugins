@@ -232,9 +232,9 @@ public class TrackMateWrapperMultiChannel implements Command {
 								.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER));
 				contrastList.add(spot
 						.getFeature(SpotContrastAnalyzerFactory.KEY));
-				ch1List.add(spot.getFeature(SpotMultiChannelIntensityAnalyzerFactory.FEATURES.get(0)));
-				ch2List.add(spot.getFeature(SpotMultiChannelIntensityAnalyzerFactory.FEATURES.get(1)));
-				ch3List.add(spot.getFeature(SpotMultiChannelIntensityAnalyzerFactory.FEATURES.get(2)));
+				addIfNotNull(ch1List, spot.getFeature(SpotMultiChannelIntensityAnalyzerFactory.FEATURES.get(0)));
+				addIfNotNull(ch2List, spot.getFeature(SpotMultiChannelIntensityAnalyzerFactory.FEATURES.get(1)));
+				addIfNotNull(ch3List, spot.getFeature(SpotMultiChannelIntensityAnalyzerFactory.FEATURES.get(2)));
 			}
 		}
 
@@ -262,13 +262,17 @@ public class TrackMateWrapperMultiChannel implements Command {
 		estDiameter = Doubles.toArray(diameterList);
 		contrast = Doubles.toArray(contrastList);
 
-		ch1Intensity = Doubles.toArray(ch1List);
-		ch2Intensity = Doubles.toArray(ch2List);
-		ch3Intensity = Doubles.toArray(ch3List);
+		if (!ch1List.isEmpty()) ch1Intensity = Doubles.toArray(ch1List);
+		if (!ch2List.isEmpty()) ch2Intensity = Doubles.toArray(ch2List);
+		if (!ch3List.isEmpty()) ch3Intensity = Doubles.toArray(ch3List);
 
 		// Return summary values
 		nSpotsFound = model.getSpots().getNSpots(false);
 		nTracksFound = model.getTrackModel().nTracks(false);
+	}
+
+	private void addIfNotNull(ArrayList<Double> list, Double feature) {
+		list.add(feature != null ? feature : 0.0);		
 	}
 
 }
