@@ -24,6 +24,9 @@ public class ApplyAffineTransform<T extends NumericType<T>> implements Command {
 	@Parameter(label = "Affine transformation matrix")
 	private double[] m;
 
+	@Parameter(label = "Apply inverse transform", required = false)
+	private boolean applyInverse = false;
+
 	@Parameter(type = ItemIO.OUTPUT)
 	private Img<T> output;
 
@@ -35,7 +38,7 @@ public class ApplyAffineTransform<T extends NumericType<T>> implements Command {
 		RealRandomAccessible<T> interpolated = Views.interpolate(
 				Views.extendZero(img), new NLinearInterpolatorFactory<T>());
 		AffineRandomAccessible<T, AffineGet> view = RealViews.affine(
-				interpolated, transform);
+				interpolated, applyInverse ? transform.inverse() : transform);
 
 		output = img.factory().create(img);
 		Cursor<T> cursorIn = Views.interval(view, img).cursor();
