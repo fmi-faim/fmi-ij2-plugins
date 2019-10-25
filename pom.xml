@@ -46,7 +46,6 @@
 			</roles>
 		</developer>
 	</developers>
-
 	<contributors>
 		<contributor>
 			<name>None</name>
@@ -66,13 +65,13 @@
 		<tag>HEAD</tag>
 		<url>https://github.com/fmi-faim/fmi-ij2-plugins</url>
 	</scm>
-
 	<issueManagement>
 		<system>GitHub Issues</system>
 		<url>https://github.com/fmi-faim/fmi-ij2-plugins/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>N/A</system>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/fmi-faim/fmi-ij2-plugins</url>
 	</ciManagement>
 
 	<properties>
@@ -86,13 +85,6 @@
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 	</properties>
-
-	<repositories>
-		<repository>
-			<id>scijava.public</id>
-			<url>https://maven.scijava.org/content/groups/public</url>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -125,8 +117,8 @@
 			<artifactId>Descriptor_based_registration</artifactId>
 			<exclusions>
 				<exclusion>
-					<artifactId>ome-xml</artifactId>
 					<groupId>ome</groupId>
+					<artifactId>ome-xml</artifactId>
 				</exclusion>
 				<exclusion>
 					<artifactId>formats-common</artifactId>
@@ -154,4 +146,11 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>scijava.public</id>
+			<url>https://maven.scijava.org/content/groups/public</url>
+		</repository>
+	</repositories>
 </project>
