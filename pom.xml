@@ -11,7 +11,7 @@
 
 	<groupId>ch.fmi</groupId>
 	<artifactId>fmi-ij2-plugins</artifactId>
-	<version>0.5.3-SNAPSHOT</version>
+	<version>0.5.3</version>
 
 	<name>ImageJ2 plugins for use in ImageJ and KNIME</name>
 	<description>A collection of plugins developed at the FMI Basel.</description>
@@ -63,7 +63,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/fmi-faim/fmi-ij2-plugins</connection>
 		<developerConnection>scm:git:git@github.com:fmi-faim/fmi-ij2-plugins</developerConnection>
-		<tag>HEAD</tag>
+		<tag>fmi-ij2-plugins-0.5.3</tag>
 		<url>https://github.com/fmi-faim/fmi-ij2-plugins</url>
 	</scm>
 
