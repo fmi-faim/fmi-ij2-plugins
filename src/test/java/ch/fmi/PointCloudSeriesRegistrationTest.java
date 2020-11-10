@@ -2,6 +2,7 @@
 package ch.fmi;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,10 +18,12 @@ import org.scijava.command.CommandService;
 public class PointCloudSeriesRegistrationTest {
 
 	private Context context;
+	private CommandService commandService;
 
 	@Before
 	public void initialize() {
 		context = new Context();
+		commandService = context.service(CommandService.class);
 	}
 
 	@After
@@ -66,25 +69,49 @@ public class PointCloudSeriesRegistrationTest {
 		inputMap.put("range", 3);
 
 		// Fit Model
-		CommandService commandService = context.getService(CommandService.class);
 		CommandModule module = commandService.run(PointCloudSeriesRegistration.class, true, inputMap).get();
 
 		// Compare
-		double[] expected = { //
+		double[] expectedModels = { //
 			1, 0, 0,  0,   0, 1, 0,  0,   0, 0, 1,  0, //
 			1, 0, 0, -1,   0, 1, 0, -1,   0, 0, 1, -1, //
 			1, 0, 0, -2,   0, 1, 0, -1,   0, 0, 1,  0  //
 		};
 		double[] flatModels = (double[]) module.getOutput("flatModels");
 		System.out.println(Arrays.toString(flatModels));
-		assertArrayEquals("Models", expected, flatModels, 0.01);
+		assertArrayEquals("Models", expectedModels, flatModels, 0.01);
 
-		
 		int[] frames = { 0, 1, 3 };
 		int[] frameList = (int[]) module.getOutput("frameList");
 		System.out.println(Arrays.toString(flatModels));
 		assertArrayEquals("Frame list", frames, frameList);
-		
+
+		double[] expectedCosts = { 0.0036778835300844024, 0.00622333538791261, 0.0028498240371903037 };
+		double[] costs = (double[]) module.getOutput("modelCosts");
+		System.out.println(Arrays.toString(costs));
+		assertArrayEquals("Costs", expectedCosts , costs , 0.000001);
 	}
 
+	@Test
+	public void testWrongInputs() {
+		double[] x = { 0, 0 };
+		double[] y = { 0, 0, 0 };
+		double[] z = { 0, 0, 0 };
+		double[] frame = { 0, 0 };
+
+		Map<String, Object> inputMap = new HashMap<>();
+		inputMap.put("transformType", PointCloudSeriesRegistration.TRANSLATION);
+		inputMap.put("dim", PointCloudSeriesRegistration.DIM3D);
+		inputMap.put("xCoords", x);
+		inputMap.put("yCoords", y);
+		inputMap.put("zCoords", z);
+		inputMap.put("frame", frame);
+		inputMap.put("range", 3);
+
+		// TODO use @ExpectedException with expectCause(instanceOf(IllegalArgumentException.class))
+		assertThrows(ExecutionException.class, () -> commandService.run(
+			PointCloudSeriesRegistration.class, true, inputMap).get());
+	}
+
+	
 }

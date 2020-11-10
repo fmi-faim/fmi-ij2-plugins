@@ -24,11 +24,15 @@ import mpicbg.models.AbstractAffineModel3D;
 import mpicbg.models.AbstractModel;
 import mpicbg.models.AffineModel2D;
 import mpicbg.models.AffineModel3D;
+import mpicbg.models.IllDefinedDataPointsException;
 import mpicbg.models.InvertibleBoundable;
+import mpicbg.models.NotEnoughDataPointsException;
 import mpicbg.models.RigidModel2D;
 import mpicbg.models.RigidModel3D;
 import mpicbg.models.SimilarityModel2D;
 import mpicbg.models.SimilarityModel3D;
+import mpicbg.models.Tile;
+import mpicbg.models.TileConfiguration;
 import mpicbg.models.TranslationModel2D;
 import mpicbg.models.TranslationModel3D;
 import plugin.DescriptorParameters;
@@ -37,7 +41,7 @@ import process.Matching;
 
 @Plugin(type = Command.class, headless = true,
 	menuPath = "FMI>Register Series of Point Clouds")
-public class PointCloudSeriesRegistration extends ContextCommand {
+public class PointCloudSeriesRegistration <M extends AbstractModel<M>> extends ContextCommand {
 
 	final static protected String TRANSLATION = "Translation";
 	final static protected String RIGID = "Rigid";
@@ -88,11 +92,11 @@ public class PointCloudSeriesRegistration extends ContextCommand {
 	// List of matrices
 	// List of frames
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
 		if (!(frame.length == xCoords.length && frame.length == yCoords.length)) {
-			log.error("All input vectors have to be same length.");
-			return;
+			throw new IllegalArgumentException("All input vectors have to be same length.");
 		}
 
 		// create peakListList
@@ -103,8 +107,61 @@ public class PointCloudSeriesRegistration extends ContextCommand {
 		params.range = range;
 		
 		Vector<ComparePair> comparePairs = Matching.descriptorMatching(peaks, nFrames, params, 1.0f);
-		ArrayList<InvertibleBoundable> models = Matching.globalOptimization(comparePairs, nFrames, params);
+		//ArrayList<InvertibleBoundable> models = Matching.globalOptimization(comparePairs, nFrames, params);
+
+		final ArrayList<Tile<?>> tiles = new ArrayList<>();
+		// initialize tiles
+		for ( int t = 0; t < nFrames; ++t )
+		  tiles.add( new Tile<>( (M) params.model.copy() ) );
+		// TODO restore coordinates (needed?)
+		// add point matches to respective tiles
+		for ( final ComparePair pair : comparePairs )
+			Matching.addPointMatches( pair.inliers, tiles.get( pair.indexA ), tiles.get( pair.indexB ) );
+
+		final TileConfiguration tc = new TileConfiguration();
+
+		// add tiles / fix first tile
+		boolean fixed = false;
+		for (Tile<?> t : tiles) {
+			if (t.getConnectedTiles().size() > 0) {
+				tc.addTile(t);
+				if (!fixed) {
+					tc.fixTile(t);
+					fixed = true;
+				}
+			}
+		}
+		
+		try {
+			tc.preAlign();
+			tc.optimize(10, 10000, 200);
+		}
+		catch (NotEnoughDataPointsException exc) {
+			throw new RuntimeException("Not enough data points.", exc);
+		}
+		catch (IllDefinedDataPointsException exc) {
+			throw new RuntimeException("Ill-defined data points.", exc);
+		}
+
+		// loop through tiles: models.add(tile.getModel()) / params.model.copy() if not connected
+		List<InvertibleBoundable> models = new ArrayList<>();
+		List<Double> costs = new ArrayList<>();
+		InvertibleBoundable lastModel = null;
+		for (Tile<?> t : tiles) {
+			if (t.getConnectedTiles().size() > 0) {
+				lastModel = (InvertibleBoundable) t.getModel();
+				models.add(lastModel);
+				costs.add(t.getCost());
+			} else {
+				// models.add((InvertibleBoundable) params.model.copy());
+				models.add(lastModel);
+				costs.add(0.0);
+			}
+		}
+		// errors.add(tile.getCost()) / or tile.getModel().getCost() ? and difference?
+
 		flatModels = flattenModels(models);
+		modelCosts = Doubles.toArray(costs);
 	}
 
 	private AbstractModel<?> suitableModel(String d, String transform) {
