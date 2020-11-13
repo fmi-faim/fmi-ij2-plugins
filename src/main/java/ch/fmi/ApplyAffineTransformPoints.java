@@ -25,6 +25,9 @@ public class ApplyAffineTransformPoints implements Command {
 	@Parameter(label = "Affine transformation matrix")
 	private double[] m;
 
+	@Parameter(label = "Apply inverse", required = false, persist = false)
+	private boolean inverse = true;
+
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] xOut;
 
@@ -44,17 +47,20 @@ public class ApplyAffineTransformPoints implements Command {
 		ArrayList<Double> yList = new ArrayList<>();
 		ArrayList<Double> zList = new ArrayList<>();
 
-		double[] oldCoords = new double[3];
-		double[] newCoords = new double[3];
+		double[] coords = new double[3];
 
 		for (int i = 0; i < xIn.length; i++) {
-			oldCoords[0] = xIn[i];
-			oldCoords[1] = yIn[i];
-			oldCoords[2] = zIn[i];
-			transform.applyInverse(newCoords, oldCoords);
-			xList.add(newCoords[0]);
-			yList.add(newCoords[1]);
-			zList.add(newCoords[2]);
+			coords[0] = xIn[i];
+			coords[1] = yIn[i];
+			coords[2] = zIn[i];
+			if (inverse) {
+				transform.applyInverse(coords, coords);
+			} else {
+				transform.apply(coords, coords);
+			}
+			xList.add(coords[0]);
+			yList.add(coords[1]);
+			zList.add(coords[2]);
 		}
 
 		xOut = Doubles.toArray(xList);
