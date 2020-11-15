@@ -60,20 +60,20 @@ public class PointCloudSeriesRegistration <M extends AbstractModel<M>> extends C
 	@Parameter(label = "Dimensionality", choices = { DIM2D, DIM3D })
 	private String dim;
 
-	@Parameter(label = "Frame Numbers")
+	@Parameter(label = "Frame Numbers", required = false)
 	private double[] frame;
 
-	@Parameter(label = "X Coordinates")
+	@Parameter(label = "X Coordinates", required = false)
 	private double[] xCoords;
 
-	@Parameter(label = "Y Coordinates")
+	@Parameter(label = "Y Coordinates", required = false)
 	private double[] yCoords;
 
 	@Parameter(label = "Z Coordinates", required = false)
 	private double[] zCoords = null;
 
-	@Parameter(label = "Range")
-	private int range = 10;
+	@Parameter(label = "Range", required = false)
+	private Integer range = 10;
 
 	// --- OUTPUTS ---
 
