@@ -21,15 +21,10 @@
  */
 package ch.fmi;
 
-import com.google.common.primitives.Doubles;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.Vector;
-import java.util.stream.Collectors;
 
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
@@ -38,47 +33,28 @@ import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import mpicbg.imglib.algorithm.scalespace.DifferenceOfGaussian.SpecialPoint;
+import ch.fmi.registration.Utils;
 import mpicbg.imglib.algorithm.scalespace.DifferenceOfGaussianPeak;
 import mpicbg.imglib.type.numeric.real.FloatType;
-import mpicbg.models.AbstractAffineModel3D;
 import mpicbg.models.AbstractModel;
-import mpicbg.models.AffineModel2D;
-import mpicbg.models.AffineModel3D;
-import mpicbg.models.IllDefinedDataPointsException;
 import mpicbg.models.InvertibleBoundable;
-import mpicbg.models.NotEnoughDataPointsException;
-import mpicbg.models.RigidModel2D;
-import mpicbg.models.RigidModel3D;
-import mpicbg.models.SimilarityModel2D;
-import mpicbg.models.SimilarityModel3D;
-import mpicbg.models.Tile;
-import mpicbg.models.TileConfiguration;
-import mpicbg.models.TranslationModel2D;
-import mpicbg.models.TranslationModel3D;
+import net.imglib2.util.Pair;
 import plugin.DescriptorParameters;
 import process.ComparePair;
 import process.Matching;
 
 @Plugin(type = Command.class, headless = true,
-	menuPath = "FMI>Register Series of Point Clouds (with matching)")
-public class PointCloudSeriesRegistration <M extends AbstractModel<M>> extends ContextCommand {
-
-	final static protected String TRANSLATION = "Translation";
-	final static protected String RIGID = "Rigid";
-	final static protected String SIMILARITY = "Similarity";
-	final static protected String AFFINE = "Affine";
-	final static protected String DIM2D = "2D";
-	final static protected String DIM3D = "3D";
+	menuPath = "FMI>Register Series of Premached Point Clouds")
+public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>> extends ContextCommand {
 
 	@Parameter
 	private LogService log;
 
-	@Parameter(label = "Type of Transformation", choices = { TRANSLATION, RIGID,
-		SIMILARITY, AFFINE })
+	@Parameter(label = "Type of Transformation", choices = { Utils.TRANSLATION, Utils.RIGID,
+		Utils.SIMILARITY, Utils.AFFINE })
 	private String transformType;
 
-	@Parameter(label = "Dimensionality", choices = { DIM2D, DIM3D })
+	@Parameter(label = "Dimensionality", choices = { Utils.DIM2D, Utils.DIM3D })
 	private String dim;
 
 	@Parameter(label = "Frame Numbers", required = false)
@@ -93,8 +69,14 @@ public class PointCloudSeriesRegistration <M extends AbstractModel<M>> extends C
 	@Parameter(label = "Z Coordinates", required = false)
 	private double[] zCoords = null;
 
+	@Parameter(label = "Track IDs", required = false)
+	private double[] trackIDs;
+
 	@Parameter(label = "Range", required = false)
 	private Integer range = 10;
+
+	@Parameter(label = "Regularize model")
+	private boolean regularize;
 
 	// --- OUTPUTS ---
 
@@ -104,30 +86,51 @@ public class PointCloudSeriesRegistration <M extends AbstractModel<M>> extends C
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] flatModels;
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private double[] modelCosts;
-
 	// TODO: update to newer API? using ImgLib2 FloatType etc.?
 	ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peaks;
 
 	// List of matrices
 	// List of frames
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
-		if (!(frame.length == xCoords.length && frame.length == yCoords.length)) {
+		if (!(frame.length == xCoords.length && frame.length == yCoords.length && frame.length == trackIDs.length)) {
 			throw new IllegalArgumentException("All input vectors have to be same length.");
 		}
 
-		// create peakListList
-		createPeaks();
-		int nFrames = peaks.size();
+		int[] frameInt = Arrays.stream(frame).mapToInt(v -> (int) v).toArray();
+		Integer[] sortedUniqueFrames = Utils.getSortedUniqueFrames(frameInt);
+		// Populate output for KNIME (needs to be int[])
+		frameList = Arrays.stream(sortedUniqueFrames).mapToInt(Integer::intValue).toArray();
+
+		int[] ids = Arrays.stream(trackIDs).mapToInt(v -> (int) v).toArray();
+		Pair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>> peaksAndCorrespondences = Utils
+				.getPeaksAndCorrespondencesFromArrays(Arrays.asList(sortedUniqueFrames), frameInt, xCoords, yCoords,
+						zCoords, ids);
+		peaks = peaksAndCorrespondences.getA();
+		List<List<Integer>> correspondences = peaksAndCorrespondences.getB();
+
 		DescriptorParameters params = defaultParameters();
-		params.model = suitableModel(dim, transformType);
+		params.regularize = regularize;
+		if (regularize) {
+			params.model = Utils.suitableRegularizedModel(dim, transformType, Utils.TRANSLATION, 0.1);
+		} else {
+			params.model = Utils.suitableModel(dim, transformType);
+		}
 		params.range = range;
-		
-		Vector<ComparePair> comparePairs = Matching.descriptorMatching(peaks, nFrames, params, 1.0f);
+
+		Vector<ComparePair> pairs = Utils.getComparePairs(sortedUniqueFrames, peaks, range, params.model);
+		Utils.populateComparePairs(pairs, peaks, correspondences);
+
+		ArrayList<InvertibleBoundable> models = Matching.globalOptimization(pairs, peaks.size(), params);
+/*
+		// Create ComparePairs by difference of frame indices
+		// FIXME delete below
+		Integer[] frameIntegerList = Utils.getSortedUniqueFrames(Arrays.stream(frame).mapToInt(v -> (int) v).toArray());
+		Vector<ComparePair> comparePairs = Utils.getComparePairs(frameIntegerList, peaks, range, params.model);
+
+		// TODO populate list from inputs, without descriptor matching
+		//Vector<ComparePair> comparePairs = Matching.descriptorMatching(peaks, nFrames, params, 1.0f);
 		//ArrayList<InvertibleBoundable> models = Matching.globalOptimization(comparePairs, nFrames, params);
 
 		final ArrayList<Tile<?>> tiles = new ArrayList<>();
@@ -180,37 +183,9 @@ public class PointCloudSeriesRegistration <M extends AbstractModel<M>> extends C
 			}
 		}
 		// errors.add(tile.getCost()) / or tile.getModel().getCost() ? and difference?
-
-		flatModels = flattenModels(models);
-		modelCosts = Doubles.toArray(costs);
-	}
-
-	private AbstractModel<?> suitableModel(String d, String transform) {
-		switch (transform) {
-			case TRANSLATION:
-				return d.equals(DIM2D) ? new TranslationModel2D()
-					: new TranslationModel3D();
-			case RIGID:
-				return d.equals(DIM2D) ? new RigidModel2D() : new RigidModel3D();
-			case SIMILARITY:
-				return d.equals(DIM2D) ? new SimilarityModel2D()
-					: new SimilarityModel3D();
-			case AFFINE:
-			default:
-				return d.equals(DIM2D) ? new AffineModel2D() : new AffineModel3D();
-		}
-	}
-
-	private double[] flattenModels(List<InvertibleBoundable> models) {
-		List<Double> list = new ArrayList<>();
-		for (InvertibleBoundable m : models) {
-			double[] matrix = new double[12];
-			// TODO allow 2D model here!
-			// see ModelFitter for mapping of 2D/3D toMatrix order to affine
-			((AbstractAffineModel3D<?>) m).getMatrix(matrix);
-			list.addAll(Arrays.stream(matrix).boxed().collect(Collectors.toList()));
-		}
-		return Doubles.toArray(list);
+*/
+		flatModels = Utils.flattenModels(models, dim);
+		//modelCosts = Doubles.toArray(costs);
 	}
 
 	private DescriptorParameters defaultParameters() {
@@ -228,41 +203,8 @@ public class PointCloudSeriesRegistration <M extends AbstractModel<M>> extends C
 		params.globalOpt = 1;
 		params.range = 10;
 		params.silent = true;
+		params.lambda = 0.1;
 		return params;
-	}
-
-	private void createPeaks()
-	{
-		List<Integer> list = new ArrayList<>(frame.length);
-		Arrays.stream(frame).forEach(v -> list.add((int) v));
-		SortedSet<Integer> frameSet = new TreeSet<>(list);
-
-		// NB: KNIME only supports int[] output, but for SortedSet we need boxed types
-		Integer[] frameArray = new Integer[frameSet.size()];
-		frameSet.toArray(frameArray);
-		List<Integer> frameLookup = Arrays.asList(frameArray);
-		frameList = Arrays.stream(frameArray).mapToInt(Integer::intValue).toArray();
-
-		peaks = new ArrayList<>(frameSet.size());
-		for (int i=0; i < frameSet.size(); i++) {
-			peaks.add(new ArrayList<>());
-		}
-
-		for (int i=0; i < frame.length; i++) {
-			peaks.get(frameLookup.indexOf((int) frame[i])).add(createPeak(xCoords[i], yCoords[i], zCoords[i]));
-		}
-	}
-
-	private DifferenceOfGaussianPeak<FloatType> createPeak(double x, double y,
-		double z)
-	{
-		int[] loc = new int[] { (int) x, (int) y, (int) z };
-		DifferenceOfGaussianPeak<FloatType> p = new DifferenceOfGaussianPeak<>(loc,
-			new FloatType(), SpecialPoint.MAX);
-		p.setSubPixelLocationOffset((float) (x - loc[0]), 0);
-		p.setSubPixelLocationOffset((float) (y - loc[1]), 1);
-		p.setSubPixelLocationOffset((float) (z - loc[2]), 2);
-		return p;
 	}
 
 }
