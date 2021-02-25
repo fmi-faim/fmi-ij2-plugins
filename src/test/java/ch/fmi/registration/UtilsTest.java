@@ -79,7 +79,7 @@ public class UtilsTest {
 	}
 
 	@Test
-	public void testGetPeaksFromArrays() {
+	public void testGetPeaksFromArrays3D() {
 		List<Integer> sortedUniqueFrames = Arrays.asList(Utils.getSortedUniqueFrames(frames));
 		Map<Integer, Long> countMap = Arrays.stream(frames).boxed().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
@@ -92,12 +92,47 @@ public class UtilsTest {
 	}
 
 	@Test
-	public void testGetPeaksAndCorrespondencesFromArrays() {
+	public void testGetPeaksFromArrays2D() {
+		List<Integer> sortedUniqueFrames = Arrays.asList(Utils.getSortedUniqueFrames(frames));
+		Map<Integer, Long> countMap = Arrays.stream(frames).boxed().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+		ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peakList = Utils.getPeaksFromArrays(sortedUniqueFrames, frames, x, y, null);
+
+		assertEquals(sortedUniqueFrames.size(), peakList.size());
+		assertEquals((long) countMap.get(sortedUniqueFrames.get(0)), peakList.get(0).size());
+		assertEquals((long) countMap.get(sortedUniqueFrames.get(1)), peakList.get(1).size());
+		assertEquals((long) countMap.get(sortedUniqueFrames.get(2)), peakList.get(2).size());
+	}
+
+	@Test
+	public void testGetPeaksAndCorrespondencesFromArrays3D() {
 		List<Integer> sortedUniqueFrames = Arrays.asList(Utils.getSortedUniqueFrames(frames));
 		Map<Integer, Long> countMap = Arrays.stream(frames).boxed().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
 		Pair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>> values = Utils
 				.getPeaksAndCorrespondencesFromArrays(sortedUniqueFrames, frames, x, y, z, trackIDs);
+
+		ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peakList = values.getA();
+		List<List<Integer>> correspondences = values.getB();
+
+		assertEquals(sortedUniqueFrames.size(), peakList.size());
+		assertEquals(sortedUniqueFrames.size(), correspondences.size());
+
+		assertEquals((long) countMap.get(sortedUniqueFrames.get(0)), correspondences.get(0).size());
+		assertEquals((long) countMap.get(sortedUniqueFrames.get(1)), correspondences.get(1).size());
+		assertEquals((long) countMap.get(sortedUniqueFrames.get(2)), correspondences.get(2).size());
+
+		Integer[] expected = { 2, 42, 13, 157, 999, 1 };
+		assertArrayEquals(expected, correspondences.get(0).toArray());
+	}
+
+	@Test
+	public void testGetPeaksAndCorrespondencesFromArrays2D() {
+		List<Integer> sortedUniqueFrames = Arrays.asList(Utils.getSortedUniqueFrames(frames));
+		Map<Integer, Long> countMap = Arrays.stream(frames).boxed().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+		Pair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>> values = Utils
+				.getPeaksAndCorrespondencesFromArrays(sortedUniqueFrames, frames, x, y, null, trackIDs);
 
 		ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peakList = values.getA();
 		List<List<Integer>> correspondences = values.getB();
