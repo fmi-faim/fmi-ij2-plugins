@@ -98,6 +98,8 @@ public class Utils {
 
 	public static Pair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>> getPeaksAndCorrespondencesFromArrays(
 			List<Integer> sortedUniqueFrames, int[] frames, double[] x, double[] y, double[] z, int[] correspondences) {
+		if (z == null)
+			return getPeaksAndCorrespondencesFromArrays(sortedUniqueFrames, frames, x, y, correspondences);
 
 		ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peaks = new ArrayList<>(sortedUniqueFrames.size());
 		List<List<Integer>> ids = new ArrayList<>(sortedUniqueFrames.size());
@@ -108,7 +110,25 @@ public class Utils {
 		}
 
 		for (int i = 0; i < frames.length; i++) {
-			peaks.get(sortedUniqueFrames.indexOf(frames[i])).add(Utils.createPeak(x[i], y[i], z[i]));
+			peaks.get(sortedUniqueFrames.indexOf(frames[i])).add(createPeak(x[i], y[i], z[i]));
+			ids.get((sortedUniqueFrames.indexOf(frames[i]))).add(correspondences[i]);
+		}
+		return new ValuePair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>>(peaks, ids);
+	}
+
+	public static Pair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>> getPeaksAndCorrespondencesFromArrays(
+			List<Integer> sortedUniqueFrames, int[] frames, double[] x, double[] y, int[] correspondences) {
+
+		ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peaks = new ArrayList<>(sortedUniqueFrames.size());
+		List<List<Integer>> ids = new ArrayList<>(sortedUniqueFrames.size());
+
+		for (int i = 0; i < sortedUniqueFrames.size(); i++) {
+			peaks.add(new ArrayList<>());
+			ids.add(new ArrayList<>());
+		}
+
+		for (int i = 0; i < frames.length; i++) {
+			peaks.get(sortedUniqueFrames.indexOf(frames[i])).add(createPeak(x[i], y[i]));
 			ids.get((sortedUniqueFrames.indexOf(frames[i]))).add(correspondences[i]);
 		}
 		return new ValuePair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>>(peaks, ids);
@@ -116,6 +136,8 @@ public class Utils {
 
 	public static ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> getPeaksFromArrays(
 			List<Integer> sortedUniqueFrames, int[] frames, double[] x, double[] y, double[] z) {
+		if (z == null)
+			return getPeaksFromArrays(sortedUniqueFrames, frames, x, y);
 
 		ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peaks = new ArrayList<>(sortedUniqueFrames.size());
 
@@ -124,7 +146,22 @@ public class Utils {
 		}
 
 		for (int i = 0; i < frames.length; i++) {
-			peaks.get(sortedUniqueFrames.indexOf((int) frames[i])).add(Utils.createPeak(x[i], y[i], z[i]));
+			peaks.get(sortedUniqueFrames.indexOf((int) frames[i])).add(createPeak(x[i], y[i], z[i]));
+		}
+		return peaks;
+	}
+
+	public static ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> getPeaksFromArrays(
+			List<Integer> sortedUniqueFrames, int[] frames, double[] x, double[] y) {
+
+		ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peaks = new ArrayList<>(sortedUniqueFrames.size());
+
+		for (int i = 0; i < sortedUniqueFrames.size(); i++) {
+			peaks.add(new ArrayList<>());
+		}
+
+		for (int i = 0; i < frames.length; i++) {
+			peaks.get(sortedUniqueFrames.indexOf((int) frames[i])).add(createPeak(x[i], y[i]));
 		}
 		return peaks;
 	}
@@ -135,6 +172,14 @@ public class Utils {
 		p.setSubPixelLocationOffset((float) (x - loc[0]), 0);
 		p.setSubPixelLocationOffset((float) (y - loc[1]), 1);
 		p.setSubPixelLocationOffset((float) (z - loc[2]), 2);
+		return p;
+	}
+
+	public static DifferenceOfGaussianPeak<FloatType> createPeak(double x, double y) {
+		int[] loc = new int[] { (int) x, (int) y };
+		DifferenceOfGaussianPeak<FloatType> p = new DifferenceOfGaussianPeak<>(loc, new FloatType(), SpecialPoint.MAX);
+		p.setSubPixelLocationOffset((float) (x - loc[0]), 0);
+		p.setSubPixelLocationOffset((float) (y - loc[1]), 1);
 		return p;
 	}
 

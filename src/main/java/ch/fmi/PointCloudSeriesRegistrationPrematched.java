@@ -33,11 +33,17 @@ import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import com.google.common.primitives.Doubles;
+
 import ch.fmi.registration.Utils;
 import mpicbg.imglib.algorithm.scalespace.DifferenceOfGaussianPeak;
 import mpicbg.imglib.type.numeric.real.FloatType;
 import mpicbg.models.AbstractModel;
+import mpicbg.models.IllDefinedDataPointsException;
 import mpicbg.models.InvertibleBoundable;
+import mpicbg.models.NotEnoughDataPointsException;
+import mpicbg.models.Tile;
+import mpicbg.models.TileConfiguration;
 import net.imglib2.util.Pair;
 import plugin.DescriptorParameters;
 import process.ComparePair;
@@ -50,12 +56,24 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 	@Parameter
 	private LogService log;
 
+	@Parameter(label = "Dimensionality", choices = { Utils.DIM2D, Utils.DIM3D })
+	private String dim;
+
 	@Parameter(label = "Type of Transformation", choices = { Utils.TRANSLATION, Utils.RIGID,
 		Utils.SIMILARITY, Utils.AFFINE })
 	private String transformType;
 
-	@Parameter(label = "Dimensionality", choices = { Utils.DIM2D, Utils.DIM3D })
-	private String dim;
+	@Parameter(label = "Regularize model")
+	private boolean regularize;
+
+	@Parameter(label = "Type of Regularization", choices = { Utils.TRANSLATION, Utils.RIGID, Utils.SIMILARITY })
+	private String regularizationType;
+
+	@Parameter(label = "Regularization Lambda", required = false)
+	private Double lambda = 0.1;
+
+	@Parameter(label = "Range", required = false)
+	private Integer range = 10;
 
 	@Parameter(label = "Frame Numbers", required = false)
 	private double[] frame;
@@ -72,12 +90,6 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 	@Parameter(label = "Track IDs", required = false)
 	private double[] trackIDs;
 
-	@Parameter(label = "Range", required = false)
-	private Integer range = 10;
-
-	@Parameter(label = "Regularize model")
-	private boolean regularize;
-
 	// --- OUTPUTS ---
 
 	@Parameter(type = ItemIO.OUTPUT)
@@ -86,12 +98,16 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] flatModels;
 
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] modelCosts;
+
 	// TODO: update to newer API? using ImgLib2 FloatType etc.?
 	ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>> peaks;
 
 	// List of matrices
 	// List of frames
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
 		if (!(frame.length == xCoords.length && frame.length == yCoords.length && frame.length == trackIDs.length)) {
@@ -106,14 +122,14 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 		int[] ids = Arrays.stream(trackIDs).mapToInt(v -> (int) v).toArray();
 		Pair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>> peaksAndCorrespondences = Utils
 				.getPeaksAndCorrespondencesFromArrays(Arrays.asList(sortedUniqueFrames), frameInt, xCoords, yCoords,
-						zCoords, ids);
+						dim.equals(Utils.DIM3D) ? zCoords : null, ids);
 		peaks = peaksAndCorrespondences.getA();
 		List<List<Integer>> correspondences = peaksAndCorrespondences.getB();
 
 		DescriptorParameters params = defaultParameters();
 		params.regularize = regularize;
 		if (regularize) {
-			params.model = Utils.suitableRegularizedModel(dim, transformType, Utils.TRANSLATION, 0.1);
+			params.model = Utils.suitableRegularizedModel(dim, transformType, regularizationType, lambda);
 		} else {
 			params.model = Utils.suitableModel(dim, transformType);
 		}
@@ -122,24 +138,17 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 		Vector<ComparePair> pairs = Utils.getComparePairs(sortedUniqueFrames, peaks, range, params.model);
 		Utils.populateComparePairs(pairs, peaks, correspondences);
 
-		ArrayList<InvertibleBoundable> models = Matching.globalOptimization(pairs, peaks.size(), params);
-/*
-		// Create ComparePairs by difference of frame indices
-		// FIXME delete below
-		Integer[] frameIntegerList = Utils.getSortedUniqueFrames(Arrays.stream(frame).mapToInt(v -> (int) v).toArray());
-		Vector<ComparePair> comparePairs = Utils.getComparePairs(frameIntegerList, peaks, range, params.model);
+		//ArrayList<InvertibleBoundable> models = Matching.globalOptimization(pairs, peaks.size(), params);
 
-		// TODO populate list from inputs, without descriptor matching
-		//Vector<ComparePair> comparePairs = Matching.descriptorMatching(peaks, nFrames, params, 1.0f);
-		//ArrayList<InvertibleBoundable> models = Matching.globalOptimization(comparePairs, nFrames, params);
+		// Global Optimization
 
 		final ArrayList<Tile<?>> tiles = new ArrayList<>();
 		// initialize tiles
-		for ( int t = 0; t < nFrames; ++t )
+		for ( int t = 0; t < peaks.size(); ++t )
 		  tiles.add( new Tile<>( (M) params.model.copy() ) );
 		// TODO restore coordinates (needed?)
 		// add point matches to respective tiles
-		for ( final ComparePair pair : comparePairs )
+		for ( final ComparePair pair : pairs )
 			Matching.addPointMatches( pair.inliers, tiles.get( pair.indexA ), tiles.get( pair.indexB ) );
 
 		final TileConfiguration tc = new TileConfiguration();
@@ -167,7 +176,7 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 			throw new RuntimeException("Ill-defined data points.", exc);
 		}
 
-		// loop through tiles: models.add(tile.getModel()) / params.model.copy() if not connected
+		// loop through tiles: models.add(tile.getModel()) / lastModel if not connected
 		List<InvertibleBoundable> models = new ArrayList<>();
 		List<Double> costs = new ArrayList<>();
 		InvertibleBoundable lastModel = null;
@@ -183,9 +192,9 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 			}
 		}
 		// errors.add(tile.getCost()) / or tile.getModel().getCost() ? and difference?
-*/
+
 		flatModels = Utils.flattenModels(models, dim);
-		//modelCosts = Doubles.toArray(costs);
+		modelCosts = Doubles.toArray(costs);
 	}
 
 	private DescriptorParameters defaultParameters() {

@@ -58,7 +58,7 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 	}
 
 	@Test
-	public void testSeriesRegistration() throws InterruptedException, ExecutionException
+	public void testSeriesRegistration3D() throws InterruptedException, ExecutionException
 	{
 		// Create Point Arrays
 		double[] x = { //
@@ -90,6 +90,9 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		Map<String, Object> inputMap = new HashMap<>();
 		inputMap.put("transformType", Utils.TRANSLATION);
 		inputMap.put("dim", Utils.DIM3D);
+		inputMap.put("regularize", false);
+		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("lambda", 0.1);
 		inputMap.put("xCoords", x);
 		inputMap.put("yCoords", y);
 		inputMap.put("zCoords", z);
@@ -114,6 +117,78 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		int[] frameList = (int[]) module.getOutput("frameList");
 		System.out.println(Arrays.toString(flatModels));
 		assertArrayEquals("Frame list", frames, frameList);
+
+		double[] expectedCosts = { 0.0033333309491487624, 0.006666661898297524, 0.003333330949148762 };
+		double[] costs = (double[]) module.getOutput("modelCosts");
+		System.out.println(Arrays.toString(costs));
+		assertArrayEquals("Costs", expectedCosts , costs , 0.000001);
+	}
+
+	@Test
+	public void testSeriesRegistration2D() throws InterruptedException, ExecutionException
+	{
+		// Create Point Arrays
+		double[] x = { //
+			0, 0, 1, 1, 1, 2, //
+			1, 2.1, 2, 0.9, 2, 3, //
+			2, 3, 2, 3, 3, 4 //
+		};
+		double[] y = { //
+			0, 1, 1, 0, 1, 2, //
+			1, 2, 0.9, 2, 2.1, 3, //
+			1, 2, 2, 1, 2, 3 //
+		};
+		double[] frame = { //
+			0, 0, 0, 0, 0, 0,//
+			1, 1, 1, 1, 1, 1, //
+			3, 3, 3, 3, 3, 3 //
+		};
+		double[] trackIDs = { //
+				1, 42, 75, 57, 999, 7, //
+				1, 75, 57, 42, 999, 7, //
+				1, 75, 42, 57, 999, 7 //
+		};
+
+		Map<String, Object> inputMap = new HashMap<>();
+		inputMap.put("transformType", Utils.TRANSLATION);
+		inputMap.put("dim", Utils.DIM2D);
+		inputMap.put("regularize", false);
+		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("lambda", 0.1);
+		inputMap.put("xCoords", x);
+		inputMap.put("yCoords", y);
+		inputMap.put("zCoords", null);
+		inputMap.put("frame", frame);
+		inputMap.put("trackIDs", trackIDs);
+		inputMap.put("range", 3);
+
+		// Fit Model
+		CommandModule module = null;
+		try {
+		module = commandService.run(PointCloudSeriesRegistrationPrematched.class, true, inputMap).get();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Compare
+		double[] expectedModels = { //
+			1, 0, 0,  0,   0, 1, 0,  0,   0, 0, 1,  0, //
+			1, 0, 0, -1,   0, 1, 0, -1,   0, 0, 1,  0, //
+			1, 0, 0, -2,   0, 1, 0, -1,   0, 0, 1,  0  //
+		};
+		double[] flatModels = (double[]) module.getOutput("flatModels");
+		System.out.println(Arrays.toString(flatModels));
+		assertArrayEquals("Models", expectedModels, flatModels, 0.01);
+
+		int[] frames = { 0, 1, 3 };
+		int[] frameList = (int[]) module.getOutput("frameList");
+		System.out.println(Arrays.toString(flatModels));
+		assertArrayEquals("Frame list", frames, frameList);
+
+		double[] expectedCosts = { 0.003333330949148762, 0.006666661898297524, 0.003333330949148762 };
+		double[] costs = (double[]) module.getOutput("modelCosts");
+		System.out.println(Arrays.toString(costs));
+		assertArrayEquals("Costs", expectedCosts , costs , 0.000001);
 	}
 
 	@Test
@@ -127,6 +202,9 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		Map<String, Object> inputMap = new HashMap<>();
 		inputMap.put("transformType", Utils.TRANSLATION);
 		inputMap.put("dim", Utils.DIM3D);
+		inputMap.put("regularize", false);
+		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("lambda", 0.1);
 		inputMap.put("xCoords", x);
 		inputMap.put("yCoords", y);
 		inputMap.put("zCoords", z);
