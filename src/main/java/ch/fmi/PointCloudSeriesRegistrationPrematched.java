@@ -50,7 +50,7 @@ import process.ComparePair;
 import process.Matching;
 
 @Plugin(type = Command.class, headless = true,
-	menuPath = "FMI>Register Series of Premached Point Clouds")
+	menuPath = "FMI>Register Series of Prematched Point Clouds")
 public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>> extends ContextCommand {
 
 	@Parameter
