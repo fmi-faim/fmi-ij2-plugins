@@ -75,6 +75,12 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 	@Parameter(label = "Range", required = false)
 	private Integer range = 10;
 
+	@Parameter(label = "Average models over time", description = "Perform a sliding-window smoothening of all models", required = false)
+	private boolean interpolate = false;
+
+	@Parameter(label = "Sliding-window radius", description = "Radius of the smoothening operation; a radius of 1 means smoothening over a 3-frame window (current +/- 1).", min = "0", required = false)
+	private Integer interpolationRadius = 2;
+
 	@Parameter(label = "Frame Numbers", required = false)
 	private double[] frame;
 
@@ -97,6 +103,9 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] flatModels;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] flatModelsInterpolated;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private double[] modelCosts;
@@ -194,6 +203,10 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 		// errors.add(tile.getCost()) / or tile.getModel().getCost() ? and difference?
 
 		flatModels = RegUtils.flattenModels(models, dim);
+		if (interpolate) {
+			List<InvertibleBoundable> interpolatedModels = RegUtils.interpolateModels(sortedUniqueFrames, models, interpolationRadius, dim);
+			flatModelsInterpolated = RegUtils.flattenModels(interpolatedModels, dim);
+		}
 		modelCosts = Doubles.toArray(costs);
 	}
 
