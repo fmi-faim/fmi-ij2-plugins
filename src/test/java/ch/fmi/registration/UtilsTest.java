@@ -301,4 +301,50 @@ public class UtilsTest {
 		};
 		assertArrayEquals(expected, flattened, 0.0);
 	}
+
+	@Test
+	public void testInterpolateModels2D() {
+		Integer[] uniqueFrames = new Integer[] { 0, 1, 2, 3, 4, 5, 6 };
+		double[] origin = new double[] { 0, 0 };
+
+		TranslationModel2D a = new TranslationModel2D();
+		a.set(0.0, -0.1);
+		TranslationModel2D b = new TranslationModel2D();
+		b.set(1.0, 0.3);
+		TranslationModel2D c = new TranslationModel2D();
+		c.set(2.0, -0.2);
+		TranslationModel2D d = new TranslationModel2D();
+		d.set(3.0, -0.5);
+		TranslationModel2D e = new TranslationModel2D();
+		e.set(4.0, 0.4);
+		TranslationModel2D f = new TranslationModel2D();
+		f.set(5.0, 0.3);
+		TranslationModel2D g = new TranslationModel2D();
+		g.set(6.0, -0.2);
+		List<InvertibleBoundable> models = Arrays.asList(a, b, c, d, e, f, g);
+		List<InvertibleBoundable> interpolated_0 = Utils.interpolateModels(uniqueFrames, models, 0, Utils.DIM2D);
+
+		for (int i = 0; i < models.size(); i++) {
+			assertEquals("Zero-radius interpolated models should be equal at position " + i, models.get(i),
+					interpolated_0.get(i));
+		}
+
+		List<InvertibleBoundable> interpolated_1 = Utils.interpolateModels(uniqueFrames, models, 1, Utils.DIM2D);
+		double[] d1 = interpolated_1.get(3).apply(origin);
+
+		double[] expected_d1 = new double[] { 3.0, -0.1 };
+		assertArrayEquals(expected_d1, d1, 0.0001);
+
+		List<InvertibleBoundable> interpolated_2 = Utils.interpolateModels(uniqueFrames, models, 2, Utils.DIM2D);
+		double[] d2 = interpolated_2.get(3).apply(origin);
+
+		double[] expected_d2 = new double[] { 3.0, 0.06 };
+		assertArrayEquals(expected_d2, d2, 0.0001);
+
+		List<InvertibleBoundable> interpolated_3 = Utils.interpolateModels(uniqueFrames, models, 3, Utils.DIM2D);
+		double[] d3 = interpolated_3.get(3).apply(origin);
+
+		double[] expected_d3 = new double[] { 3.0, 0.0 };
+		assertArrayEquals(expected_d3, d3, 0.0001);
+	}
 }

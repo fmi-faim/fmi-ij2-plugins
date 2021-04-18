@@ -31,6 +31,8 @@ import com.google.common.primitives.Doubles;
 import mpicbg.imglib.algorithm.scalespace.DifferenceOfGaussian.SpecialPoint;
 import mpicbg.imglib.algorithm.scalespace.DifferenceOfGaussianPeak;
 import mpicbg.imglib.type.numeric.real.FloatType;
+import mpicbg.models.AbstractAffineModel2D;
+import mpicbg.models.AbstractAffineModel3D;
 import mpicbg.models.AbstractModel;
 import mpicbg.models.Affine2D;
 import mpicbg.models.Affine3D;
@@ -276,4 +278,83 @@ public class Utils {
 		return Doubles.toArray(list);
 	}
 
+	public static List<InvertibleBoundable> interpolateModels(Integer[] frames, List<InvertibleBoundable> models, int radius, String dim) {
+		if (frames.length != models.size()) {
+			throw new IllegalArgumentException("'frames' and 'models' have different size: " + frames.length + " vs. " + models.size());
+		}
+		List<Integer> frameList = Arrays.asList(frames);
+		List<InvertibleBoundable> interpolated = new ArrayList<>(models.size());
+
+		for (int i = 0; i < models.size(); i++) {
+			int current = frames[i];
+			InvertibleBoundable previous = null;
+			InvertibleBoundable cur = null;
+			InvertibleBoundable next = null;
+			int count = 0;
+			int previousCount = 0;
+			for (int r = radius; r > 0; r--) {
+				// lookup current-r and current+r in models
+				int indexA = frameList.indexOf(current - r);
+				int indexB = frameList.indexOf(current + r);
+				cur = interpolate(get(models, indexA), get(models, indexB), 0.5, dim);
+				count += (indexA < 0 ? 0 : 1) + (indexB < 0 ? 0 : 1);
+				next = interpolate(cur, previous, (double) previousCount / count, dim);
+				previous = next;
+				// increase counter by 0,1 or 2
+				previousCount = count;
+			}
+			double lambda = (double) count / (count + 1);
+			interpolated.add(interpolate(models.get(i), previous, lambda, dim));
+		}
+		return interpolated;
+	}
+
+	private static InvertibleBoundable interpolate(InvertibleBoundable modelA, InvertibleBoundable modelB,
+			double lambda, String dim) {
+		if (modelA == null) {
+			return modelB;
+		}
+		if (modelB == null) {
+			return modelA;
+		}
+		switch (dim) {
+		case DIM2D:
+			return interpolate2D(modelA, modelB, lambda);
+		case DIM3D:
+			return interpolate3D(modelA, modelB, lambda);
+		}
+		return null;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static InvertibleBoundable interpolate2D(InvertibleBoundable modelA, InvertibleBoundable modelB, double lambda) {
+		if (modelA instanceof AbstractAffineModel2D) {
+			if (modelB instanceof AbstractAffineModel2D) {
+				return new InterpolatedAffineModel2D((AbstractAffineModel2D) modelA, (AbstractAffineModel2D) modelB, lambda);
+			}
+			return new InterpolatedAffineModel2D((AbstractAffineModel2D) modelA, (InterpolatedAffineModel2D) modelB, lambda);
+		}
+		if (modelB instanceof AbstractAffineModel2D) {
+			return new InterpolatedAffineModel2D((InterpolatedAffineModel2D) modelA, (AbstractAffineModel2D) modelB, lambda);
+		}
+		return new InterpolatedAffineModel2D((InterpolatedAffineModel2D) modelA, (InterpolatedAffineModel2D) modelB, lambda);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static InvertibleBoundable interpolate3D(InvertibleBoundable modelA, InvertibleBoundable modelB, double lambda) {
+		if (modelA instanceof AbstractAffineModel3D) {
+			if (modelB instanceof AbstractAffineModel3D) {
+				return new InterpolatedAffineModel2D((AbstractAffineModel3D) modelA, (AbstractAffineModel3D) modelB, lambda);
+			}
+			return new InterpolatedAffineModel3D((AbstractAffineModel3D) modelA, (InterpolatedAffineModel3D) modelB, lambda);
+		}
+		if (modelB instanceof AbstractAffineModel3D) {
+			return new InterpolatedAffineModel3D((InterpolatedAffineModel3D) modelA, (AbstractAffineModel3D) modelB, lambda);
+		}
+		return new InterpolatedAffineModel3D((InterpolatedAffineModel3D) modelA, (InterpolatedAffineModel3D) modelB, lambda);
+	}
+
+	private static InvertibleBoundable get(List<InvertibleBoundable> models, int index) {
+		return (index < 0 ? null : models.get(index));
+	}
 }
