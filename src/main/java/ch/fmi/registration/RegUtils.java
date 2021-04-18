@@ -344,7 +344,7 @@ public class RegUtils {
 	private static InvertibleBoundable interpolate3D(InvertibleBoundable modelA, InvertibleBoundable modelB, double lambda) {
 		if (modelA instanceof AbstractAffineModel3D) {
 			if (modelB instanceof AbstractAffineModel3D) {
-				return new InterpolatedAffineModel2D((AbstractAffineModel3D) modelA, (AbstractAffineModel3D) modelB, lambda);
+				return new InterpolatedAffineModel3D((AbstractAffineModel3D) modelA, (AbstractAffineModel3D) modelB, lambda);
 			}
 			return new InterpolatedAffineModel3D((AbstractAffineModel3D) modelA, (InterpolatedAffineModel3D) modelB, lambda);
 		}
