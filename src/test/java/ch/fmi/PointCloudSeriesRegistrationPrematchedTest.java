@@ -36,7 +36,7 @@ import org.scijava.Context;
 import org.scijava.command.CommandModule;
 import org.scijava.command.CommandService;
 
-import ch.fmi.registration.Utils;
+import ch.fmi.registration.RegUtils;
 
 public class PointCloudSeriesRegistrationPrematchedTest {
 
@@ -88,10 +88,12 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		};
 
 		Map<String, Object> inputMap = new HashMap<>();
-		inputMap.put("transformType", Utils.TRANSLATION);
-		inputMap.put("dim", Utils.DIM3D);
+		inputMap.put("transformType", RegUtils.TRANSLATION);
+		inputMap.put("dim", RegUtils.DIM3D);
 		inputMap.put("regularize", false);
-		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("regularizationType", RegUtils.TRANSLATION);
+		inputMap.put("interpolate", true);
+		inputMap.put("interpolationRadius", 2);
 		inputMap.put("lambda", 0.1);
 		inputMap.put("xCoords", x);
 		inputMap.put("yCoords", y);
@@ -112,6 +114,16 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		double[] flatModels = (double[]) module.getOutput("flatModels");
 		System.out.println(Arrays.toString(flatModels));
 		assertArrayEquals("Models", expectedModels, flatModels, 0.01);
+
+		// Compare
+		double[] expectedModelsInterpolated = { //
+			1, 0, 0, -0.5,   0, 1, 0, -0.5,     0, 0, 1, -0.5, //
+			1, 0, 0, -1,     0, 1, 0, -0.667,   0, 0, 1, -0.333, //
+			1, 0, 0, -1.5,   0, 1, 0, -1,       0, 0, 1, -0.5  //
+		};
+		double[] flatModelsInterpolated = (double[]) module.getOutput("flatModelsInterpolated");
+		System.out.println(Arrays.toString(flatModelsInterpolated));
+		assertArrayEquals("Interpolated Models", expectedModelsInterpolated, flatModelsInterpolated, 0.01);
 
 		int[] frames = { 0, 1, 3 };
 		int[] frameList = (int[]) module.getOutput("frameList");
@@ -150,10 +162,10 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		};
 
 		Map<String, Object> inputMap = new HashMap<>();
-		inputMap.put("transformType", Utils.TRANSLATION);
-		inputMap.put("dim", Utils.DIM2D);
+		inputMap.put("transformType", RegUtils.TRANSLATION);
+		inputMap.put("dim", RegUtils.DIM2D);
 		inputMap.put("regularize", false);
-		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("regularizationType", RegUtils.TRANSLATION);
 		inputMap.put("lambda", 0.1);
 		inputMap.put("xCoords", x);
 		inputMap.put("yCoords", y);
@@ -200,10 +212,10 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		double[] trackIDs = { 2, 7 };
 
 		Map<String, Object> inputMap = new HashMap<>();
-		inputMap.put("transformType", Utils.TRANSLATION);
-		inputMap.put("dim", Utils.DIM3D);
+		inputMap.put("transformType", RegUtils.TRANSLATION);
+		inputMap.put("dim", RegUtils.DIM3D);
 		inputMap.put("regularize", false);
-		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("regularizationType", RegUtils.TRANSLATION);
 		inputMap.put("lambda", 0.1);
 		inputMap.put("xCoords", x);
 		inputMap.put("yCoords", y);
