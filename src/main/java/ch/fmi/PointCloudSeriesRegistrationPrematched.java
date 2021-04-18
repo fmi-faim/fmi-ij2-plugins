@@ -35,7 +35,7 @@ import org.scijava.plugin.Plugin;
 
 import com.google.common.primitives.Doubles;
 
-import ch.fmi.registration.Utils;
+import ch.fmi.registration.RegUtils;
 import mpicbg.imglib.algorithm.scalespace.DifferenceOfGaussianPeak;
 import mpicbg.imglib.type.numeric.real.FloatType;
 import mpicbg.models.AbstractModel;
@@ -56,17 +56,17 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 	@Parameter
 	private LogService log;
 
-	@Parameter(label = "Dimensionality", choices = { Utils.DIM2D, Utils.DIM3D })
+	@Parameter(label = "Dimensionality", choices = { RegUtils.DIM2D, RegUtils.DIM3D })
 	private String dim;
 
-	@Parameter(label = "Type of Transformation", choices = { Utils.TRANSLATION, Utils.RIGID,
-		Utils.SIMILARITY, Utils.AFFINE })
+	@Parameter(label = "Type of Transformation", choices = { RegUtils.TRANSLATION, RegUtils.RIGID,
+		RegUtils.SIMILARITY, RegUtils.AFFINE })
 	private String transformType;
 
 	@Parameter(label = "Regularize model")
 	private boolean regularize;
 
-	@Parameter(label = "Type of Regularization", choices = { Utils.TRANSLATION, Utils.RIGID, Utils.SIMILARITY })
+	@Parameter(label = "Type of Regularization", choices = { RegUtils.TRANSLATION, RegUtils.RIGID, RegUtils.SIMILARITY })
 	private String regularizationType;
 
 	@Parameter(label = "Regularization Lambda", required = false)
@@ -115,28 +115,28 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 		}
 
 		int[] frameInt = Arrays.stream(frame).mapToInt(v -> (int) v).toArray();
-		Integer[] sortedUniqueFrames = Utils.getSortedUniqueFrames(frameInt);
+		Integer[] sortedUniqueFrames = RegUtils.getSortedUniqueFrames(frameInt);
 		// Populate output for KNIME (needs to be int[])
 		frameList = Arrays.stream(sortedUniqueFrames).mapToInt(Integer::intValue).toArray();
 
 		int[] ids = Arrays.stream(trackIDs).mapToInt(v -> (int) v).toArray();
-		Pair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>> peaksAndCorrespondences = Utils
+		Pair<ArrayList<ArrayList<DifferenceOfGaussianPeak<FloatType>>>, List<List<Integer>>> peaksAndCorrespondences = RegUtils
 				.getPeaksAndCorrespondencesFromArrays(Arrays.asList(sortedUniqueFrames), frameInt, xCoords, yCoords,
-						dim.equals(Utils.DIM3D) ? zCoords : null, ids);
+						dim.equals(RegUtils.DIM3D) ? zCoords : null, ids);
 		peaks = peaksAndCorrespondences.getA();
 		List<List<Integer>> correspondences = peaksAndCorrespondences.getB();
 
 		DescriptorParameters params = defaultParameters();
 		params.regularize = regularize;
 		if (regularize) {
-			params.model = Utils.suitableRegularizedModel(dim, transformType, regularizationType, lambda);
+			params.model = RegUtils.suitableRegularizedModel(dim, transformType, regularizationType, lambda);
 		} else {
-			params.model = Utils.suitableModel(dim, transformType);
+			params.model = RegUtils.suitableModel(dim, transformType);
 		}
 		params.range = range;
 
-		Vector<ComparePair> pairs = Utils.getComparePairs(sortedUniqueFrames, peaks, range, params.model);
-		Utils.populateComparePairs(pairs, peaks, correspondences);
+		Vector<ComparePair> pairs = RegUtils.getComparePairs(sortedUniqueFrames, peaks, range, params.model);
+		RegUtils.populateComparePairs(pairs, peaks, correspondences);
 
 		//ArrayList<InvertibleBoundable> models = Matching.globalOptimization(pairs, peaks.size(), params);
 
@@ -193,7 +193,7 @@ public class PointCloudSeriesRegistrationPrematched <M extends AbstractModel<M>>
 		}
 		// errors.add(tile.getCost()) / or tile.getModel().getCost() ? and difference?
 
-		flatModels = Utils.flattenModels(models, dim);
+		flatModels = RegUtils.flattenModels(models, dim);
 		modelCosts = Doubles.toArray(costs);
 	}
 

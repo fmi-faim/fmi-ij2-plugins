@@ -36,7 +36,7 @@ import org.scijava.Context;
 import org.scijava.command.CommandModule;
 import org.scijava.command.CommandService;
 
-import ch.fmi.registration.Utils;
+import ch.fmi.registration.RegUtils;
 
 public class PointCloudSeriesRegistrationPrematchedTest {
 
@@ -88,10 +88,10 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		};
 
 		Map<String, Object> inputMap = new HashMap<>();
-		inputMap.put("transformType", Utils.TRANSLATION);
-		inputMap.put("dim", Utils.DIM3D);
+		inputMap.put("transformType", RegUtils.TRANSLATION);
+		inputMap.put("dim", RegUtils.DIM3D);
 		inputMap.put("regularize", false);
-		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("regularizationType", RegUtils.TRANSLATION);
 		inputMap.put("lambda", 0.1);
 		inputMap.put("xCoords", x);
 		inputMap.put("yCoords", y);
@@ -150,10 +150,10 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		};
 
 		Map<String, Object> inputMap = new HashMap<>();
-		inputMap.put("transformType", Utils.TRANSLATION);
-		inputMap.put("dim", Utils.DIM2D);
+		inputMap.put("transformType", RegUtils.TRANSLATION);
+		inputMap.put("dim", RegUtils.DIM2D);
 		inputMap.put("regularize", false);
-		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("regularizationType", RegUtils.TRANSLATION);
 		inputMap.put("lambda", 0.1);
 		inputMap.put("xCoords", x);
 		inputMap.put("yCoords", y);
@@ -200,10 +200,10 @@ public class PointCloudSeriesRegistrationPrematchedTest {
 		double[] trackIDs = { 2, 7 };
 
 		Map<String, Object> inputMap = new HashMap<>();
-		inputMap.put("transformType", Utils.TRANSLATION);
-		inputMap.put("dim", Utils.DIM3D);
+		inputMap.put("transformType", RegUtils.TRANSLATION);
+		inputMap.put("dim", RegUtils.DIM3D);
 		inputMap.put("regularize", false);
-		inputMap.put("regularizationType", Utils.TRANSLATION);
+		inputMap.put("regularizationType", RegUtils.TRANSLATION);
 		inputMap.put("lambda", 0.1);
 		inputMap.put("xCoords", x);
 		inputMap.put("yCoords", y);

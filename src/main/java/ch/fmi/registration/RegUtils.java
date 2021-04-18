@@ -56,8 +56,8 @@ import net.imglib2.util.ValuePair;
 import process.ComparePair;
 import process.Particle;
 
-public class Utils {
-	private Utils() {
+public class RegUtils {
+	private RegUtils() {
 		// prevent instantiation of static utility class
 	}
 
