@@ -94,7 +94,7 @@ public class WellKnownTextToBitmask extends ContextCommand {
             List<RealLocalizable> points = Arrays.stream(polygon.getCoordinates())
                     .map(coordinate -> new RealPoint(coordinate.getX(), coordinate.getY()))
                     .collect(Collectors.toList());
-            Polygon2D polygon2d = GeomMasks.polygon2D(points);  // imglib2-roi polygon
+            Polygon2D polygon2d = GeomMasks.closedPolygon2D(points);  // imglib2-roi polygon
             RealRandomAccessibleRealInterval<BoolType> bitmask = Masks.toRealRandomAccessibleRealInterval(polygon2d);
             // create view
             FinalInterval dims = envelopeToDims(polygon.getEnvelope());
