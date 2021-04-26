@@ -34,6 +34,7 @@ import net.imglib2.roi.geom.real.Polygon2D;
 import net.imglib2.img.Img;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.logic.BoolType;
+import net.imglib2.util.Util;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.locationtech.jts.geom.Coordinate;
@@ -102,7 +103,7 @@ public class WellKnownTextToBitmask extends ContextCommand {
             // create image
             RandomAccessibleInterval<BitType> interval = Converters.convert(
                     (RandomAccessibleInterval<BoolType>) view, (in, out) -> out.set(in.get()), new BitType());
-            Img<BitType> image = ImgView.wrap(interval);
+            Img<BitType> image = ImgView.wrap(interval, Util.getSuitableImgFactory(interval, new BitType()));
             // return result
             output =  image;
         } catch (ParseException e) {
