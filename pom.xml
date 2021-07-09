@@ -83,7 +83,7 @@
 		<fmi-trackmate-addons.version>0.1.2</fmi-trackmate-addons.version>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
-		<releaseProfiles>deploy-to-scijava</releaseProfiles>
+		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 	</properties>
 
 	<dependencies>
