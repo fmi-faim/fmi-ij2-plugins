@@ -3,7 +3,7 @@
 [![NodePit](https://img.shields.io/badge/NodePit-FMI%20KNIME%20Plugins-yellow.svg)](https://nodepit.com/iu/ch.fmi.knime.plugins)
 [![GitHub Release](https://img.shields.io/github/release/fmi-faim/fmi-ij2-plugins.svg)](https://github.com/fmi-faim/fmi-ij2-plugins/releases)
 [![Build Status](https://travis-ci.org/fmi-faim/fmi-ij2-plugins.svg?branch=master)](https://travis-ci.org/fmi-faim/fmi-ij2-plugins)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6223c2d420574794be62f9f45a871903)](https://www.codacy.com/app/imagejan/fmi-ij2-plugins?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fmi-faim/fmi-ij2-plugins&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/97b75dbd7ff241888fb2339fdb5dcebc)](https://www.codacy.com/gh/fmi-faim/fmi-ij2-plugins/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fmi-faim/fmi-ij2-plugins&amp;utm_campaign=Badge_Grade)
 [![DOI](https://zenodo.org/badge/72086675.svg)](https://zenodo.org/badge/latestdoi/72086675)
 
 ## Installation in KNIME
