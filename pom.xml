@@ -70,8 +70,8 @@
 		<url>https://github.com/fmi-faim/fmi-ij2-plugins/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>Travis CI</system>
-		<url>https://travis-ci.org/fmi-faim/fmi-ij2-plugins</url>
+		<system>GitHub Actions</system>
+		<url>https://github.com/fmi-faim/fmi-ij2-plugins/actions</url>
 	</ciManagement>
 
 	<properties>
