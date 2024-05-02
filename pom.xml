@@ -80,6 +80,7 @@
 		<license.copyrightOwners>FMI Basel</license.copyrightOwners>
 
 		<fmi-trackmate-addons.version>0.7.0</fmi-trackmate-addons.version>
+		<jts-core.version>1.19.0</jts-core.version>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
@@ -100,16 +101,36 @@
 			<artifactId>MorphoLibJ_</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>mpicbg</groupId>
+			<artifactId>mpicbg</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>net.imagej</groupId>
-			<artifactId>imagej</artifactId>
+			<artifactId>ij</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-ops</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-algorithm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-realtransform</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-roi</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2-ij</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
@@ -131,6 +152,10 @@
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
+			<artifactId>legacy-imglib1</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>sc.fiji</groupId>
 			<artifactId>TrackMate</artifactId>
 		</dependency>
 		<dependency>
@@ -140,9 +165,18 @@
 		<dependency>
 			<groupId>org.locationtech.jts</groupId>
 			<artifactId>jts-core</artifactId>
-			<version>1.18.1</version>
+			<version>${jts-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>scijava-common</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-ij</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
