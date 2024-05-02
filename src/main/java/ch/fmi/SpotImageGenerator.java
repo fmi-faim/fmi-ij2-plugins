@@ -57,7 +57,7 @@ public class SpotImageGenerator implements Command {
 	private Double radius;
 
 	@Parameter(type = ItemIO.OUTPUT)
-	private ImgPlus<DoubleType> resultImg;
+	private ImgPlus<?> resultImg;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -76,7 +76,7 @@ public class SpotImageGenerator implements Command {
 		RandomAccessibleInterval<DoubleType> kernel = ops.create().kernelGauss(
 				radius * 2.0, 2);
 
-		resultImg = ImgPlus.wrap((Img<DoubleType>) ops.filter().convolve(img,
+		resultImg = ImgPlus.wrap((Img<?>) ops.filter().convolve(img,
 				kernel));
 	}
 

@@ -21,25 +21,25 @@
  */
 package ch.fmi;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.util.ArrayList;
 
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.TrackModel;
-import fiji.plugin.trackmate.tracking.LAPUtils;
-import fiji.plugin.trackmate.tracking.TrackerKeys;
-import fiji.plugin.trackmate.tracking.sparselap.SparseLAPTrackerFactory;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.TrackModel;
+import fiji.plugin.trackmate.tracking.TrackerKeys;
+import fiji.plugin.trackmate.tracking.jaqaman.LAPUtils;
+import fiji.plugin.trackmate.tracking.jaqaman.SparseLAPTrackerFactory;
 
 @Plugin(type = Command.class, headless = true, menuPath = "FMI>Track Spot Collection")
 public class TrackMateCollectionTracker implements Command {
@@ -130,7 +130,7 @@ public class TrackMateCollectionTracker implements Command {
 		settings.dt = frameInterval;
 
 		settings.trackerFactory = new SparseLAPTrackerFactory();
-		settings.trackerSettings = LAPUtils.getDefaultLAPSettingsMap();
+		settings.trackerSettings = LAPUtils.getDefaultSegmentSettingsMap();
 		settings.trackerSettings.put(TrackerKeys.KEY_LINKING_MAX_DISTANCE,
 				linkingMaxDistance);
 		settings.trackerSettings.put(TrackerKeys.KEY_GAP_CLOSING_MAX_DISTANCE,
