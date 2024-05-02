@@ -21,8 +21,17 @@
  */
 package ch.fmi;
 
+import java.util.ArrayList;
+
 import com.google.common.primitives.Doubles;
 
+import org.scijava.ItemIO;
+import org.scijava.command.Command;
+import org.scijava.log.LogService;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
+
+import ch.fmi.trackmate.features.MaxQualitySpotAnalyzerFactory;
 import fiji.plugin.trackmate.FeatureModel;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
@@ -32,25 +41,16 @@ import fiji.plugin.trackmate.TrackModel;
 import fiji.plugin.trackmate.detection.DetectorKeys;
 import fiji.plugin.trackmate.detection.LogDetectorFactory;
 import fiji.plugin.trackmate.features.FeatureFilter;
-import fiji.plugin.trackmate.features.spot.SpotContrastAnalyzerFactory;
-import fiji.plugin.trackmate.features.spot.SpotIntensityAnalyzerFactory;
-import fiji.plugin.trackmate.features.spot.SpotRadiusEstimatorFactory;
+import fiji.plugin.trackmate.features.spot.SpotContrastAndSNRAnalyzerFactory;
+import fiji.plugin.trackmate.features.spot.SpotIntensityMultiCAnalyzerFactory;
 import fiji.plugin.trackmate.features.track.TrackDurationAnalyzer;
-import fiji.plugin.trackmate.tracking.LAPUtils;
 import fiji.plugin.trackmate.tracking.TrackerKeys;
-import fiji.plugin.trackmate.tracking.sparselap.SparseLAPTrackerFactory;
+import fiji.plugin.trackmate.tracking.jaqaman.LAPUtils;
+import fiji.plugin.trackmate.tracking.jaqaman.SparseLAPTrackerFactory;
 import ij.ImagePlus;
 import ij.gui.Roi;
 import ij.plugin.filter.ThresholdToSelection;
 import ij.process.ImageProcessor;
-
-import java.util.ArrayList;
-
-import org.scijava.ItemIO;
-import org.scijava.command.Command;
-import org.scijava.log.LogService;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
 
 @Plugin(type = Command.class, headless = true, menuPath = "FMI>Track Spots (Subpixel localization)")
 public class TrackMateWrapper implements Command {
@@ -126,9 +126,6 @@ public class TrackMateWrapper implements Command {
 	private double[] radius;
 
 	@Parameter(type = ItemIO.OUTPUT)
-	private double[] estDiameter;
-
-	@Parameter(type = ItemIO.OUTPUT)
 	private double[] contrast;
 
 	@Override
@@ -143,9 +140,8 @@ public class TrackMateWrapper implements Command {
 
 		// Create TrackMate instance with settings
 		Model model = new Model();
-		Settings settings = new Settings();
+		Settings settings = new Settings(imp);
 
-		settings.setFrom(imp);
 		settings.dt = frameInterval;
 		settings.detectorFactory = new LogDetectorFactory<>();
 
@@ -164,16 +160,15 @@ public class TrackMateWrapper implements Command {
 		}
 
 		settings.trackerFactory = new SparseLAPTrackerFactory();
-		settings.trackerSettings = LAPUtils.getDefaultLAPSettingsMap();
+		settings.trackerSettings = LAPUtils.getDefaultSegmentSettingsMap();
 		settings.trackerSettings.put(TrackerKeys.KEY_LINKING_MAX_DISTANCE,
 				linkingMaxDistance);
 		settings.trackerSettings.put(TrackerKeys.KEY_GAP_CLOSING_MAX_DISTANCE,
 				closingMaxDistance);
 		settings.trackerSettings.put(TrackerKeys.KEY_GAP_CLOSING_MAX_FRAME_GAP,
 				frameGap);
-		settings.addSpotAnalyzerFactory(new SpotIntensityAnalyzerFactory<>());
-		settings.addSpotAnalyzerFactory(new SpotRadiusEstimatorFactory<>());
-		settings.addSpotAnalyzerFactory(new SpotContrastAnalyzerFactory<>());
+		settings.addSpotAnalyzerFactory(new SpotIntensityMultiCAnalyzerFactory<>());
+		settings.addSpotAnalyzerFactory(new SpotContrastAndSNRAnalyzerFactory<>());
 		settings.addSpotAnalyzerFactory(new MaxQualitySpotAnalyzerFactory<>());
 		settings.addTrackAnalyzer(new TrackDurationAnalyzer());
 
@@ -204,7 +199,6 @@ public class TrackMateWrapper implements Command {
 		ArrayList<Double> totalIntensityList = new ArrayList<>();
 		ArrayList<Double> meanIntensityList = new ArrayList<>();
 		ArrayList<Double> radiusList = new ArrayList<>();
-		ArrayList<Double> diameterList = new ArrayList<>();
 		ArrayList<Double> contrastList = new ArrayList<>();
 
 		TrackModel trackModel = model.getTrackModel();
@@ -223,16 +217,13 @@ public class TrackMateWrapper implements Command {
 				zList.add(spot.getDoublePosition(2));
 				totalIntensityList
 						.add(spot
-								.getFeature(SpotIntensityAnalyzerFactory.TOTAL_INTENSITY));
+								.getFeature("TOTAL_INTENSITY_CH1"));
 				meanIntensityList
 						.add(spot
-								.getFeature(SpotIntensityAnalyzerFactory.MEAN_INTENSITY));
+								.getFeature("MEAN_INTENSITY_CH1"));
 				radiusList.add(spot.getFeature(Spot.RADIUS));
-				diameterList
-						.add(spot
-								.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER));
 				contrastList.add(spot
-						.getFeature(SpotContrastAnalyzerFactory.KEY));
+						.getFeature("CONTRAST_CH1"));
 			}
 		}
 
@@ -257,7 +248,6 @@ public class TrackMateWrapper implements Command {
 		totalIntensity = Doubles.toArray(totalIntensityList);
 		meanIntensity = Doubles.toArray(meanIntensityList);
 		radius = Doubles.toArray(radiusList);
-		estDiameter = Doubles.toArray(diameterList);
 		contrast = Doubles.toArray(contrastList);
 
 		// Return summary values

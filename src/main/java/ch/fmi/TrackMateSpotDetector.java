@@ -21,9 +21,18 @@
  */
 package ch.fmi;
 
+import java.util.ArrayList;
+
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
+import org.scijava.ItemIO;
+import org.scijava.command.Command;
+import org.scijava.log.LogService;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
+
+import ch.fmi.trackmate.features.MaxQualitySpotAnalyzerFactory;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
@@ -32,21 +41,12 @@ import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.detection.DetectorKeys;
 import fiji.plugin.trackmate.detection.LogDetectorFactory;
 import fiji.plugin.trackmate.features.FeatureFilter;
-import fiji.plugin.trackmate.features.spot.SpotContrastAnalyzerFactory;
-import fiji.plugin.trackmate.features.spot.SpotIntensityAnalyzerFactory;
-import fiji.plugin.trackmate.features.spot.SpotRadiusEstimatorFactory;
+import fiji.plugin.trackmate.features.spot.SpotContrastAndSNRAnalyzerFactory;
+import fiji.plugin.trackmate.features.spot.SpotIntensityMultiCAnalyzerFactory;
 import ij.ImagePlus;
 import ij.gui.Roi;
 import ij.plugin.filter.ThresholdToSelection;
 import ij.process.ImageProcessor;
-
-import java.util.ArrayList;
-
-import org.scijava.ItemIO;
-import org.scijava.command.Command;
-import org.scijava.log.LogService;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
 
 @Plugin(type = Command.class, headless = true, menuPath = "FMI>Spot Detection (Subpixel localization)")
 public class TrackMateSpotDetector implements Command {
@@ -128,8 +128,7 @@ public class TrackMateSpotDetector implements Command {
 			imp.setCalibration(null);
 		}
 
-		Settings settings = new Settings();
-		settings.setFrom(imp);
+		Settings settings = new Settings(imp);
 
 		// TODO make detector choice optional
 		settings.detectorFactory = new LogDetectorFactory<>();
@@ -142,9 +141,8 @@ public class TrackMateSpotDetector implements Command {
 				DetectorKeys.KEY_RADIUS, spotSize);
 		settings.detectorSettings.put( //
 				DetectorKeys.KEY_THRESHOLD, spotThreshold);
-		settings.addSpotAnalyzerFactory(new SpotIntensityAnalyzerFactory<>());
-		settings.addSpotAnalyzerFactory(new SpotRadiusEstimatorFactory<>());
-		settings.addSpotAnalyzerFactory(new SpotContrastAnalyzerFactory<>());
+		settings.addSpotAnalyzerFactory(new SpotIntensityMultiCAnalyzerFactory<>());
+		settings.addSpotAnalyzerFactory(new SpotContrastAndSNRAnalyzerFactory<>());
 		settings.addSpotAnalyzerFactory(new MaxQualitySpotAnalyzerFactory<>());
 
 		if (filterMaxQuality) {
@@ -165,7 +163,6 @@ public class TrackMateSpotDetector implements Command {
 		ArrayList<Double> qualityList = new ArrayList<>();
 		ArrayList<Double> totalIntensityList = new ArrayList<>();
 		ArrayList<Double> meanIntensityList = new ArrayList<>();
-		ArrayList<Double> estDiameterList = new ArrayList<>();
 		ArrayList<Double> contrastList = new ArrayList<>();
 		// TODO add other outputs
 
@@ -183,15 +180,12 @@ public class TrackMateSpotDetector implements Command {
 				qualityList.add(spot.getFeature(Spot.QUALITY));
 				totalIntensityList
 						.add(spot
-								.getFeature(SpotIntensityAnalyzerFactory.TOTAL_INTENSITY));
+								.getFeature("TOTAL_INTENSITY_CH1"));
 				meanIntensityList
 						.add(spot
-								.getFeature(SpotIntensityAnalyzerFactory.MEAN_INTENSITY));
-				estDiameterList
-						.add(spot
-								.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER));
+								.getFeature("MEAN_INTENSITY_CH1"));
 				contrastList.add(spot
-						.getFeature(SpotContrastAnalyzerFactory.KEY));
+						.getFeature("CONTRAST_CH1"));
 			}
 		} else {
 			log.warn(trackmate.getErrorMessage());
@@ -207,7 +201,6 @@ public class TrackMateSpotDetector implements Command {
 		quality = Doubles.toArray(qualityList);
 		totalIntensity = Doubles.toArray(totalIntensityList);
 		meanIntensity = Doubles.toArray(meanIntensityList);
-		estDiameter = Doubles.toArray(estDiameterList);
 		contrast = Doubles.toArray(contrastList);
 
 		// Return summary values

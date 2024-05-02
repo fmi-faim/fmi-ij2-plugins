@@ -29,8 +29,9 @@ import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
 import net.imagej.ops.Ops.Image.DistanceTransform;
 import net.imagej.ops.convert.ConvertImages;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.morphology.distance.DistanceTransform.DISTANCE_TYPE;
-import net.imglib2.converter.read.ConvertedRandomAccessibleInterval;
+import net.imglib2.converter.Converters;
 import net.imglib2.img.Img;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
@@ -95,8 +96,8 @@ public class AnisotropicDistanceMap extends ContextCommand {
 			break;
 		case IMGLIB:
 			FloatType type = new FloatType();
-			ConvertedRandomAccessibleInterval<RealType<?>, FloatType> conv = new ConvertedRandomAccessibleInterval<>(
-					input, (s, t) -> t.set(s.getRealDouble() > 0.0 ? 100000000 : 0.0f),
+			RandomAccessibleInterval<FloatType> conv = Converters.convert(
+					(RandomAccessibleInterval<RealType<?>>) input, (s, t) -> t.set(s.getRealDouble() > 0.0 ? 100000000 : 0.0f),
 					type);
 			outImg = (Img<?>) ops.run(Ops.Create.Img.class, conv);
 			net.imglib2.algorithm.morphology.distance.DistanceTransform
